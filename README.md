@@ -10,4 +10,5 @@ pulumi login --local
 pulumi new aws-typescript
 pulumi up
 pulumi destroy
+pulumi config set aws:region ap-southeast-1
 ```
