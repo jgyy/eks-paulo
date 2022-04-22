@@ -1,6 +1,6 @@
 import * as aws from '@pulumi/aws';
 
-const StackName = 'cluster-1';
+const StackName: string = 'cluster-1';
 
 const VPC = new aws.ec2.Vpc(
   'VPC',
@@ -47,6 +47,7 @@ const SubnetPrivateAPSOUTHEAST1A = new aws.ec2.Subnet(
     cidrBlock: '192.168.128.0/19',
     tags: {
       'kubernetes.io/role/internal-elb': '1',
+      'kubernetes.io/cluster/cluster-1': 'owned',
       Name: `${StackName}/SubnetPrivateAPSOUTHEAST1A`,
     },
     vpcId: VPC.id,
@@ -60,6 +61,7 @@ const SubnetPrivateAPSOUTHEAST1B = new aws.ec2.Subnet(
     cidrBlock: '192.168.160.0/19',
     tags: {
       'kubernetes.io/role/internal-elb': '1',
+      'kubernetes.io/cluster/cluster-1': 'owned',
       Name: `${StackName}/SubnetPrivateAPSOUTHEAST1B`,
     },
     vpcId: VPC.id,
@@ -73,6 +75,7 @@ const SubnetPrivateAPSOUTHEAST1C = new aws.ec2.Subnet(
     cidrBlock: '192.168.96.0/19',
     tags: {
       'kubernetes.io/role/internal-elb': '1',
+      'kubernetes.io/cluster/cluster-1': 'owned',
       Name: `${StackName}/SubnetPrivateAPSOUTHEAST1C`,
     },
     vpcId: VPC.id,
@@ -86,6 +89,7 @@ const SubnetPublicAPSOUTHEAST1A = new aws.ec2.Subnet(
     cidrBlock: '192.168.32.0/19',
     tags: {
       'kubernetes.io/role/internal-elb': '1',
+      'kubernetes.io/cluster/cluster-1': 'owned',
       Name: `${StackName}/SubnetPublicAPSOUTHEAST1A`,
     },
     vpcId: VPC.id,
@@ -99,6 +103,7 @@ const SubnetPublicAPSOUTHEAST1B = new aws.ec2.Subnet(
     cidrBlock: '192.168.64.0/19',
     tags: {
       'kubernetes.io/role/internal-elb': '1',
+      'kubernetes.io/cluster/cluster-1': 'owned',
       Name: `${StackName}/SubnetPublicAPSOUTHEAST1B`,
     },
     vpcId: VPC.id,
@@ -112,6 +117,7 @@ const SubnetPublicAPSOUTHEAST1C = new aws.ec2.Subnet(
     cidrBlock: '192.168.0.0/19',
     tags: {
       'kubernetes.io/role/internal-elb': '1',
+      'kubernetes.io/cluster/cluster-1': 'owned',
       Name: `${StackName}/SubnetPublicAPSOUTHEAST1C`,
     },
     vpcId: VPC.id,
@@ -369,7 +375,7 @@ const PublicSubnetRoute = new aws.ec2.Route(
   'PublicSubnetRoute',
   {
     destinationCidrBlock: '0.0.0.0/0',
-    natGatewayId: InternetGateway.id,
+    gatewayId: InternetGateway.id,
     routeTableId: PublicRouteTable.id,
   },
   {
@@ -427,6 +433,71 @@ const RouteTableAssociationPublicAPSOUTHEAST1C = new aws.ec2.RouteTableAssociati
   },
 );
 
+const AmazonEC2ContainerRegistryReadOnly = aws.iam.getPolicy({
+  name: 'AmazonEC2ContainerRegistryReadOnly',
+});
+
+const AmazonEKSWorkerNodePolicy = aws.iam.getPolicy({
+  name: 'AmazonEKSWorkerNodePolicy',
+});
+
+const AmazonEKSCNIPolicy = aws.iam.getPolicy({
+  name: 'AmazonEKS_CNI_Policy',
+});
+
+const AmazonSSMManagedInstanceCore = aws.iam.getPolicy({
+  name: 'AmazonSSMManagedInstanceCore',
+});
+
+const NodeInstanceRole = new aws.iam.Role(
+  'NodeInstanceRole',
+  {
+    assumeRolePolicy: JSON.stringify({
+      Statement: [{
+        Action: 'sts:AssumeRole',
+        Effect: 'Allow',
+        Principal: {
+          Service: 'ec2.amazonaws.com',
+        },
+      }],
+      Version: '2012-10-17',
+    }),
+    managedPolicyArns: [
+      AmazonEC2ContainerRegistryReadOnly.then((p) => p.arn),
+      AmazonEKSWorkerNodePolicy.then((p) => p.arn),
+      AmazonEKSCNIPolicy.then((p) => p.arn),
+      AmazonSSMManagedInstanceCore.then((p) => p.arn),
+    ],
+    path: '/',
+    tags: {
+      Name: `${StackName}/NodeInstanceRole`,
+    },
+  },
+);
+
+const NgOne = new aws.eks.NodeGroup(
+  'ng-1',
+  {
+    nodeGroupName: 'ng-1',
+    instanceTypes: ['m5.large'],
+    clusterName: ControlPlane.name,
+    nodeRoleArn: NodeInstanceRole.arn,
+    subnetIds: [
+      SubnetPrivateAPSOUTHEAST1A.id,
+      SubnetPrivateAPSOUTHEAST1B.id,
+      SubnetPrivateAPSOUTHEAST1C.id,
+    ],
+    scalingConfig: {
+      desiredSize: 1,
+      maxSize: 1,
+      minSize: 1,
+    },
+    updateConfig: {
+      maxUnavailable: 1,
+    },
+  },
+);
+
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
 export const ClusterSecurityGroupId = ControlPlane.vpcConfig.clusterSecurityGroupId;
@@ -436,6 +507,10 @@ export const FeatureNATMode = 'Single';
 export const SecurityGroup = ControlPlaneSecurityGroup;
 export const ServiceRoleARN = ServiceRole.arn;
 export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup;
+export const FeatureLocalSecurityGroup = true;
+export const FeaturePrivateNetworking = false;
+export const FeatureSharedSecurityGroup = true;
+export const InstanceProfileARN = NgOne.arn;
 export const SubnetsPrivate = [
   SubnetPrivateAPSOUTHEAST1C,
   SubnetPrivateAPSOUTHEAST1B,
