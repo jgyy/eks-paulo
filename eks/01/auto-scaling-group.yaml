@@ -1,0 +1,24 @@
+AWSTemplateFormatVersion: 2010-09-09
+Resources:
+  NodeGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      DesiredCapacity: 1
+      LaunchConfigurationName: ng-1-nodeLaunchConfiguration-789dcf9
+      MinSize: 1
+      MaxSize: 2
+      VPCZoneIdentifier:
+        - subnet-09080df3b59a6faaa
+        - subnet-0a051f71580caf1f8
+        - subnet-0fa170b7cdbd43e5c
+      Tags:
+        - Key: Name
+          Value: cluster-1-eksCluster-71b382e-worker
+          PropagateAtLaunch: 'true'
+        - Key: kubernetes.io/cluster/cluster-1-eksCluster-71b382e
+          Value: owned
+          PropagateAtLaunch: 'true'
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: '1'
+        MaxBatchSize: '1'
