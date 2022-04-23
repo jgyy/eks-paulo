@@ -115,35 +115,35 @@ export const ClusterSecurityGroupId = ControlPlane.vpcConfig.clusterSecurityGrou
 export const ClusterStackName = PARAM.StackName;
 export const Endpoint = ControlPlane.endpoint;
 export const FeatureNATMode = 'Single';
-export const SecurityGroup = ControlPlaneSecurityGroup.id;
+export const SecurityGroup = ControlPlaneSecurityGroup;
 export const ServiceRoleARN = ServiceRole.arn;
-export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup.id;
+export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup;
 export const FeatureLocalSecurityGroup = true;
 export const FeaturePrivateNetworking = false;
 export const FeatureSharedSecurityGroup = true;
 export const InstanceProfileARN = NodeGroup.arn;
 export const SubnetsPrivate = [
-  SubnetPrivateAPSOUTHEAST1C.id,
-  SubnetPrivateAPSOUTHEAST1B.id,
-  SubnetPrivateAPSOUTHEAST1A.id,
+  SubnetPrivateAPSOUTHEAST1C,
+  SubnetPrivateAPSOUTHEAST1B,
+  SubnetPrivateAPSOUTHEAST1A,
 ];
 export const SubnetsPublic = [
-  SubnetPublicAPSOUTHEAST1C.id,
-  SubnetPublicAPSOUTHEAST1B.id,
-  SubnetPublicAPSOUTHEAST1A.id,
+  SubnetPublicAPSOUTHEAST1C,
+  SubnetPublicAPSOUTHEAST1B,
+  SubnetPublicAPSOUTHEAST1A,
 ];
-export const ARNS = [
-  IngressDefaultClusterToNodeSG.id,
-  IngressInterNodeGroupSG.id,
-  IngressNodeToDefaultClusterSG.id,
-  NATPrivateSubnetRouteAPSOUTHEAST1A.id,
-  NATPrivateSubnetRouteAPSOUTHEAST1B.id,
-  NATPrivateSubnetRouteAPSOUTHEAST1C.id,
-  PublicSubnetRoute.id,
-  RouteTableAssociationPrivateAPSOUTHEAST1A.id,
-  RouteTableAssociationPrivateAPSOUTHEAST1B.id,
-  RouteTableAssociationPrivateAPSOUTHEAST1C.id,
-  RouteTableAssociationPublicAPSOUTHEAST1A.id,
-  RouteTableAssociationPublicAPSOUTHEAST1B.id,
-  RouteTableAssociationPublicAPSOUTHEAST1C.id,
-];
+export {
+  IngressDefaultClusterToNodeSG,
+  IngressInterNodeGroupSG,
+  IngressNodeToDefaultClusterSG,
+  NATPrivateSubnetRouteAPSOUTHEAST1A,
+  NATPrivateSubnetRouteAPSOUTHEAST1B,
+  NATPrivateSubnetRouteAPSOUTHEAST1C,
+  PublicSubnetRoute,
+  RouteTableAssociationPrivateAPSOUTHEAST1A,
+  RouteTableAssociationPrivateAPSOUTHEAST1B,
+  RouteTableAssociationPrivateAPSOUTHEAST1C,
+  RouteTableAssociationPublicAPSOUTHEAST1A,
+  RouteTableAssociationPublicAPSOUTHEAST1B,
+  RouteTableAssociationPublicAPSOUTHEAST1C,
+};
