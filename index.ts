@@ -1,149 +1,92 @@
-import * as EC2 from './eks/01/ec2';
-import * as EKS from './eks/01/eks';
-import * as IAM from './eks/01/iam';
-import * as PARAM from './eks/01/param';
+import EC2 from './eks/02/ec2';
+import EKS from './eks/02/eks';
+import IAM from './eks/02/iam';
+import CF from './eks/02/cf';
 
-const { VPC } = EC2.Vpc(PARAM.StackName);
+const ec2 = new EC2();
+const eks = new EKS();
+const iam = new IAM();
+const cf = new CF();
 
-const {
-  ClusterSharedNodeSecurityGroup,
-  ControlPlaneSecurityGroup,
-} = EC2.SecurityGroup(PARAM.StackName, VPC);
+const VPC = ec2.VPC();
+cf.VPC = VPC;
 
-const {
-  SubnetPrivateAPSOUTHEAST1A,
-  SubnetPrivateAPSOUTHEAST1B,
-  SubnetPrivateAPSOUTHEAST1C,
-  SubnetPublicAPSOUTHEAST1A,
-  SubnetPublicAPSOUTHEAST1B,
-  SubnetPublicAPSOUTHEAST1C,
-} = EC2.Subnet(PARAM.StackName, VPC, PARAM.AvailabilityZones);
+ec2.NATIP();
+iam.PolicyCloudWatchMetrics();
+iam.PolicyELBPermissions();
+ec2.InternetGateway();
+ec2.PrivateRouteTableAPSOUTHEAST1A();
+ec2.PrivateRouteTableAPSOUTHEAST1B();
+ec2.PrivateRouteTableAPSOUTHEAST1C();
+ec2.PublicRouteTable();
+const ClusterSharedNodeSecurityGroup = ec2.ClusterSharedNodeSecurityGroup();
 
-const { PolicyCloudWatchMetrics, PolicyELBPermissions } = IAM.Policy(PARAM.StackName);
+const ControlPlaneSecurityGroup = ec2.ControlPlaneSecurityGroup();
+eks.ControlPlaneSecurityGroup = ControlPlaneSecurityGroup;
 
-const { ServiceRole, NodeInstanceRole } = IAM.Role(
-  PARAM.StackName,
-  PARAM.AmazonEKSClusterPolicy,
-  PARAM.AmazonEKSVPCResourceController,
-  PARAM.AmazonEC2ContainerRegistryReadOnly,
-  PARAM.AmazonEKSWorkerNodePolicy,
-  PARAM.AmazonEKSCNIPolicy,
-  PARAM.AmazonSSMManagedInstanceCore,
-  PolicyCloudWatchMetrics,
-  PolicyELBPermissions,
-);
+const CIDR = cf.CIDR();
+ec2.CIDR = CIDR;
 
-const { ControlPlane } = EKS.Cluster(
-  PARAM.StackName,
-  ControlPlaneSecurityGroup,
-  SubnetPublicAPSOUTHEAST1C,
-  SubnetPublicAPSOUTHEAST1B,
-  SubnetPublicAPSOUTHEAST1A,
-  SubnetPrivateAPSOUTHEAST1C,
-  SubnetPrivateAPSOUTHEAST1B,
-  SubnetPrivateAPSOUTHEAST1A,
-  ServiceRole,
-);
+ec2.VPCGatewayAttachment();
+ec2.PublicSubnetRoute();
+ec2.PublicSubnetIPv6DefaultRoute();
 
-const { NodeGroup } = EKS.NodeGroup(
-  ControlPlane,
-  NodeInstanceRole,
-  SubnetPrivateAPSOUTHEAST1A,
-  SubnetPrivateAPSOUTHEAST1B,
-  SubnetPrivateAPSOUTHEAST1C,
-);
+const SubnetPrivateAPSOUTHEAST1A = ec2.SubnetPrivateAPSOUTHEAST1A();
+eks.SubnetPrivateAPSOUTHEAST1A = SubnetPrivateAPSOUTHEAST1A;
 
-const {
-  IngressDefaultClusterToNodeSG,
-  IngressInterNodeGroupSG,
-  IngressNodeToDefaultClusterSG,
-} = EC2.SecurityGroupRule(ClusterSharedNodeSecurityGroup, ControlPlane);
+const SubnetPrivateAPSOUTHEAST1B = ec2.SubnetPrivateAPSOUTHEAST1B();
+eks.SubnetPrivateAPSOUTHEAST1B = SubnetPrivateAPSOUTHEAST1B;
 
-const { InternetGateway } = EC2.InternetGateway(PARAM.StackName);
+const SubnetPrivateAPSOUTHEAST1C = ec2.SubnetPrivateAPSOUTHEAST1C();
+eks.SubnetPrivateAPSOUTHEAST1C = SubnetPrivateAPSOUTHEAST1C;
 
-const { NATIP } = EC2.Eip(PARAM.StackName);
+const SubnetPublicAPSOUTHEAST1A = ec2.SubnetPublicAPSOUTHEAST1A();
+eks.SubnetPublicAPSOUTHEAST1A = SubnetPublicAPSOUTHEAST1A;
 
-const { NATGateway } = EC2.NatGateway(PARAM.StackName, NATIP, SubnetPublicAPSOUTHEAST1C);
+const SubnetPublicAPSOUTHEAST1B = ec2.SubnetPublicAPSOUTHEAST1B();
+eks.SubnetPublicAPSOUTHEAST1B = SubnetPublicAPSOUTHEAST1B;
 
-const {
-  PrivateRouteTableAPSOUTHEAST1A,
-  PrivateRouteTableAPSOUTHEAST1B,
-  PrivateRouteTableAPSOUTHEAST1C,
-  PublicRouteTable,
-} = EC2.RouteTable(PARAM.StackName, VPC);
+const SubnetPublicAPSOUTHEAST1C = ec2.SubnetPublicAPSOUTHEAST1C();
+eks.SubnetPublicAPSOUTHEAST1C = SubnetPublicAPSOUTHEAST1C;
 
-const { VPCGatewayAttachment } = EC2.InternetGatewayAttachment(InternetGateway, VPC);
+ec2.RouteTableAssociationPrivateAPSOUTHEAST1A();
+ec2.RouteTableAssociationPrivateAPSOUTHEAST1B();
+ec2.RouteTableAssociationPrivateAPSOUTHEAST1C();
+ec2.RouteTableAssociationPublicAPSOUTHEAST1A();
+ec2.RouteTableAssociationPublicAPSOUTHEAST1B();
+ec2.RouteTableAssociationPublicAPSOUTHEAST1C();
+ec2.NATGateway();
+ec2.NATPrivateSubnetRouteAPSOUTHEAST1A();
+ec2.NATPrivateSubnetRouteAPSOUTHEAST1B();
+ec2.NATPrivateSubnetRouteAPSOUTHEAST1C();
 
-const {
-  NATPrivateSubnetRouteAPSOUTHEAST1A,
-  NATPrivateSubnetRouteAPSOUTHEAST1B,
-  NATPrivateSubnetRouteAPSOUTHEAST1C,
-  PublicSubnetRoute,
-} = EC2.Route(
-  NATGateway,
-  PrivateRouteTableAPSOUTHEAST1A,
-  PrivateRouteTableAPSOUTHEAST1B,
-  PrivateRouteTableAPSOUTHEAST1C,
-  InternetGateway,
-  PublicRouteTable,
-  VPCGatewayAttachment,
-);
+const ServiceRole = iam.ServiceRole();
+eks.ServiceRole = ServiceRole;
 
-const {
-  RouteTableAssociationPrivateAPSOUTHEAST1A,
-  RouteTableAssociationPrivateAPSOUTHEAST1B,
-  RouteTableAssociationPrivateAPSOUTHEAST1C,
-  RouteTableAssociationPublicAPSOUTHEAST1A,
-  RouteTableAssociationPublicAPSOUTHEAST1B,
-  RouteTableAssociationPublicAPSOUTHEAST1C,
-} = EC2.RouteTableAssociation(
-  PrivateRouteTableAPSOUTHEAST1A,
-  PrivateRouteTableAPSOUTHEAST1B,
-  PrivateRouteTableAPSOUTHEAST1C,
-  PublicRouteTable,
-  SubnetPrivateAPSOUTHEAST1A,
-  SubnetPrivateAPSOUTHEAST1B,
-  SubnetPrivateAPSOUTHEAST1C,
-  SubnetPublicAPSOUTHEAST1A,
-  SubnetPublicAPSOUTHEAST1B,
-  SubnetPublicAPSOUTHEAST1C,
-);
+const ControlPlane = eks.ControlPlane();
+ec2.ControlPlane = ControlPlane;
+
+ec2.IngressDefaultClusterToNodeSG();
+ec2.IngressInterNodeGroupSG();
+ec2.IngressNodeToDefaultClusterSG();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
 export const ClusterSecurityGroupId = ControlPlane.vpcConfig.clusterSecurityGroupId;
-export const ClusterStackName = PARAM.StackName;
+export const ClusterStackName = 'cluster-2';
 export const Endpoint = ControlPlane.endpoint;
 export const FeatureNATMode = 'Single';
-export const SecurityGroup = ControlPlaneSecurityGroup.id;
+export const SecurityGroup = ControlPlaneSecurityGroup.arn;
 export const ServiceRoleARN = ServiceRole.arn;
-export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup.id;
-export const FeatureLocalSecurityGroup = true;
-export const FeaturePrivateNetworking = false;
-export const FeatureSharedSecurityGroup = true;
-export const InstanceProfileARN = NodeGroup.arn;
+export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup.arn;
 export const SubnetsPrivate = [
-  SubnetPrivateAPSOUTHEAST1C.id,
-  SubnetPrivateAPSOUTHEAST1B.id,
-  SubnetPrivateAPSOUTHEAST1A.id,
+  SubnetPrivateAPSOUTHEAST1A.arn,
+  SubnetPrivateAPSOUTHEAST1B.arn,
+  SubnetPrivateAPSOUTHEAST1C.arn,
 ];
 export const SubnetsPublic = [
-  SubnetPublicAPSOUTHEAST1C.id,
-  SubnetPublicAPSOUTHEAST1B.id,
-  SubnetPublicAPSOUTHEAST1A.id,
+  SubnetPublicAPSOUTHEAST1A.arn,
+  SubnetPublicAPSOUTHEAST1B.arn,
+  SubnetPublicAPSOUTHEAST1C.arn,
 ];
-export const ARNS = [
-  IngressDefaultClusterToNodeSG.id,
-  IngressInterNodeGroupSG.id,
-  IngressNodeToDefaultClusterSG.id,
-  NATPrivateSubnetRouteAPSOUTHEAST1A.id,
-  NATPrivateSubnetRouteAPSOUTHEAST1B.id,
-  NATPrivateSubnetRouteAPSOUTHEAST1C.id,
-  PublicSubnetRoute.id,
-  RouteTableAssociationPrivateAPSOUTHEAST1A.id,
-  RouteTableAssociationPrivateAPSOUTHEAST1B.id,
-  RouteTableAssociationPrivateAPSOUTHEAST1C.id,
-  RouteTableAssociationPublicAPSOUTHEAST1A.id,
-  RouteTableAssociationPublicAPSOUTHEAST1B.id,
-  RouteTableAssociationPublicAPSOUTHEAST1C.id,
-];
+export const VPCARN = VPC.arn;
