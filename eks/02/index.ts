@@ -1,7 +1,7 @@
-import EC2 from './eks/03/ec2';
-import EKS from './eks/03/eks';
-import IAM from './eks/03/iam';
-import CF from './eks/03/cf';
+import EC2 from './eks/02/ec2';
+import EKS from './eks/02/eks';
+import IAM from './eks/02/iam';
+import CF from './eks/02/cf';
 
 const ec2 = new EC2();
 const eks = new EKS();
@@ -19,8 +19,8 @@ ec2.PrivateRouteTableAPSOUTHEAST1A();
 ec2.PrivateRouteTableAPSOUTHEAST1B();
 ec2.PrivateRouteTableAPSOUTHEAST1C();
 ec2.PublicRouteTable();
-
 const ClusterSharedNodeSecurityGroup = ec2.ClusterSharedNodeSecurityGroup();
+
 const ControlPlaneSecurityGroup = ec2.ControlPlaneSecurityGroup();
 eks.ControlPlaneSecurityGroup = ControlPlaneSecurityGroup;
 
@@ -66,11 +66,6 @@ eks.ServiceRole = ServiceRole;
 const ControlPlane = eks.ControlPlane();
 ec2.ControlPlane = ControlPlane;
 
-const NodeInstanceRole = iam.NodeInstanceRole();
-eks.NodeInstanceRole = NodeInstanceRole;
-
-eks.NodeGroupOnePublic();
-eks.NodeGroupTwoPrivate();
 ec2.IngressDefaultClusterToNodeSG();
 ec2.IngressInterNodeGroupSG();
 ec2.IngressNodeToDefaultClusterSG();
@@ -95,7 +90,3 @@ export const SubnetsPublic = [
   SubnetPublicAPSOUTHEAST1C.arn,
 ];
 export const VPCARN = VPC.arn;
-export const FeatureLocalSecurityGroup = true;
-export const FeaturePrivateNetworking = true;
-export const FeatureSharedSecurityGroup = true;
-export const InstanceRoleARN = NodeInstanceRole.arn;
