@@ -1,7 +1,7 @@
-import EC2 from './eks/05/ec2';
-import EKS from './eks/05/eks';
-import IAM from './eks/05/iam';
-import CF from './eks/05/cf';
+import EC2 from './eks/03/ec2';
+import EKS from './eks/03/eks';
+import IAM from './eks/03/iam';
+import CF from './eks/03/cf';
 
 const ec2 = new EC2();
 const eks = new EKS();
@@ -11,10 +11,9 @@ const cf = new CF();
 const VPC = ec2.VPC();
 cf.VPC = VPC;
 
-iam.PolicyAutoScaling();
+ec2.NATIP();
 iam.PolicyCloudWatchMetrics();
 iam.PolicyELBPermissions();
-ec2.NATIP();
 ec2.InternetGateway();
 ec2.PrivateRouteTableAPSOUTHEAST1A();
 ec2.PrivateRouteTableAPSOUTHEAST1B();
@@ -71,8 +70,7 @@ const NodeInstanceRole = iam.NodeInstanceRole();
 eks.NodeInstanceRole = NodeInstanceRole;
 
 eks.NodeGroupOnePublic();
-eks.NodeGroupTwoPrivateA();
-eks.NodeGroupThreePrivateB();
+eks.NodeGroupTwoPrivate();
 ec2.IngressDefaultClusterToNodeSG();
 ec2.IngressInterNodeGroupSG();
 ec2.IngressNodeToDefaultClusterSG();
@@ -80,7 +78,7 @@ ec2.IngressNodeToDefaultClusterSG();
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
 export const ClusterSecurityGroupId = ControlPlane.vpcConfig.clusterSecurityGroupId;
-export const ClusterStackName = 'cluster-5';
+export const ClusterStackName = 'cluster-2';
 export const Endpoint = ControlPlane.endpoint;
 export const FeatureNATMode = 'Single';
 export const SecurityGroup = ControlPlaneSecurityGroup.arn;
