@@ -432,7 +432,7 @@ class EC2 extends Parameters {
       this.subnetPrivateAPSOUTHEAST1A = new aws.ec2.Subnet(
         'SubnetPrivateAPSOUTHEAST1A',
         {
-          availabilityZone: this.AvailabilityZones[0],
+          availabilityZone: this.AvailabilityZones.then((a) => a.names.sort()[0]),
           cidrBlock: this.CIDR.outputs.IPV40,
           ipv6CidrBlock: this.CIDR.outputs.IPV60,
           tags: {
@@ -456,7 +456,7 @@ class EC2 extends Parameters {
       this.subnetPrivateAPSOUTHEAST1B = new aws.ec2.Subnet(
         'SubnetPrivateAPSOUTHEAST1B',
         {
-          availabilityZone: this.AvailabilityZones[1],
+          availabilityZone: this.AvailabilityZones.then((a) => a.names.sort()[1]),
           cidrBlock: this.CIDR.outputs.IPV41,
           ipv6CidrBlock: this.CIDR.outputs.IPV61,
           tags: {
@@ -480,7 +480,7 @@ class EC2 extends Parameters {
       this.subnetPrivateAPSOUTHEAST1C = new aws.ec2.Subnet(
         'SubnetPrivateAPSOUTHEAST1C',
         {
-          availabilityZone: this.AvailabilityZones[2],
+          availabilityZone: this.AvailabilityZones.then((a) => a.names.sort()[2]),
           cidrBlock: this.CIDR.outputs.IPV42,
           ipv6CidrBlock: this.CIDR.outputs.IPV62,
           tags: {
@@ -505,7 +505,7 @@ class EC2 extends Parameters {
         'SubnetPublicAPSOUTHEAST1A',
         {
           mapPublicIpOnLaunch: true,
-          availabilityZone: this.AvailabilityZones[0],
+          availabilityZone: this.AvailabilityZones.then((a) => a.names.sort()[0]),
           cidrBlock: this.CIDR.outputs.IPV43,
           ipv6CidrBlock: this.CIDR.outputs.IPV63,
           tags: {
@@ -530,7 +530,7 @@ class EC2 extends Parameters {
         'SubnetPublicAPSOUTHEAST1B',
         {
           mapPublicIpOnLaunch: true,
-          availabilityZone: this.AvailabilityZones[1],
+          availabilityZone: this.AvailabilityZones.then((a) => a.names.sort()[1]),
           cidrBlock: this.CIDR.outputs.IPV44,
           ipv6CidrBlock: this.CIDR.outputs.IPV64,
           tags: {
@@ -555,7 +555,7 @@ class EC2 extends Parameters {
         'SubnetPublicAPSOUTHEAST1C',
         {
           mapPublicIpOnLaunch: true,
-          availabilityZone: this.AvailabilityZones[2],
+          availabilityZone: this.AvailabilityZones.then((a) => a.names.sort()[2]),
           cidrBlock: this.CIDR.outputs.IPV45,
           ipv6CidrBlock: this.CIDR.outputs.IPV65,
           tags: {

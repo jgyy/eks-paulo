@@ -75,44 +75,6 @@ class EKS extends Parameters {
     `);
   };
 
-  NodeGroupOne = () => {
-    if (
-      this.controlPlane
-      && this.NodeInstanceRole
-      && this.SubnetPrivateAPSOUTHEAST1A
-      && this.SubnetPrivateAPSOUTHEAST1B
-      && this.SubnetPrivateAPSOUTHEAST1C
-    ) {
-      return new aws.eks.NodeGroup(
-        'ng-1',
-        {
-          nodeGroupName: 'ng-1',
-          instanceTypes: ['m5.large'],
-          clusterName: this.controlPlane.name,
-          nodeRoleArn: this.NodeInstanceRole.arn,
-          subnetIds: [
-            this.SubnetPrivateAPSOUTHEAST1C.id,
-            this.SubnetPrivateAPSOUTHEAST1B.id,
-            this.SubnetPrivateAPSOUTHEAST1A.id,
-          ],
-          scalingConfig: {
-            desiredSize: 1,
-            maxSize: 1,
-            minSize: 1,
-          },
-          updateConfig: { maxUnavailable: 1 },
-        },
-      );
-    }
-    throw new Error(`
-    controlPlane = ${this.controlPlane}
-    SubnetPrivateAPSOUTHEAST1C = ${this.SubnetPrivateAPSOUTHEAST1C}
-    SubnetPrivateAPSOUTHEAST1B = ${this.SubnetPrivateAPSOUTHEAST1B}
-    SubnetPrivateAPSOUTHEAST1A = ${this.SubnetPrivateAPSOUTHEAST1A}
-    NodeInstanceRole = ${this.NodeInstanceRole}
-    `);
-  };
-
   NodeGroupOnePublic = () => {
     if (
       this.controlPlane
@@ -135,11 +97,13 @@ class EKS extends Parameters {
           ],
           scalingConfig: {
             desiredSize: 4,
-            maxSize: 4,
-            minSize: 4,
+            minSize: 2,
+            maxSize: 8,
           },
+          diskSize: 100,
+          amiType: 'AL2_x86_64',
           updateConfig: { maxUnavailable: 4 },
-          tags: { Name: 'custom-node-name' },
+          tags: { 'nodegroup-type': 'frontend-workloads' },
         },
       );
     }
@@ -152,7 +116,7 @@ class EKS extends Parameters {
     `);
   };
 
-  NodeGroupTwoPrivate = () => {
+  NodeGroupTwoPrivateA = () => {
     if (
       this.controlPlane
       && this.NodeInstanceRole
@@ -161,9 +125,9 @@ class EKS extends Parameters {
       && this.SubnetPrivateAPSOUTHEAST1A
     ) {
       return new aws.eks.NodeGroup(
-        'ng2-private',
+        'ng2-private-a',
         {
-          nodeGroupName: 'ng2-private',
+          nodeGroupName: 'ng2-private-a',
           instanceTypes: ['m5.xlarge'],
           clusterName: this.controlPlane.name,
           nodeRoleArn: this.NodeInstanceRole.arn,
@@ -173,12 +137,58 @@ class EKS extends Parameters {
             this.SubnetPrivateAPSOUTHEAST1A.id,
           ],
           scalingConfig: {
-            desiredSize: 10,
-            maxSize: 10,
-            minSize: 10,
+            desiredSize: 2,
+            maxSize: 2,
+            minSize: 1,
           },
-          updateConfig: { maxUnavailable: 10 },
-          tags: { Name: 'custom-node-name' },
+          updateConfig: { maxUnavailable: 2 },
+          tags: { 'nodegroup-type': 'backend-cluster-addons' },
+        },
+      );
+    }
+    throw new Error(`
+    controlPlane = ${this.controlPlane}
+    SubnetPrivateAPSOUTHEAST1C = ${this.SubnetPrivateAPSOUTHEAST1C}
+    SubnetPrivateAPSOUTHEAST1B = ${this.SubnetPrivateAPSOUTHEAST1B}
+    SubnetPrivateAPSOUTHEAST1A = ${this.SubnetPrivateAPSOUTHEAST1A}
+    NodeInstanceRole = ${this.NodeInstanceRole}
+    `);
+  };
+
+  NodeGroupThreePrivateB = () => {
+    if (
+      this.controlPlane
+      && this.NodeInstanceRole
+      && this.SubnetPrivateAPSOUTHEAST1C
+      && this.SubnetPrivateAPSOUTHEAST1B
+      && this.SubnetPrivateAPSOUTHEAST1A
+    ) {
+      return new aws.eks.NodeGroup(
+        'ng3-private-b',
+        {
+          nodeGroupName: 'ng3-private-b',
+          instanceTypes: ['m5.xlarge'],
+          clusterName: this.controlPlane.name,
+          nodeRoleArn: this.NodeInstanceRole.arn,
+          subnetIds: [
+            this.SubnetPrivateAPSOUTHEAST1C.id,
+            this.SubnetPrivateAPSOUTHEAST1B.id,
+            this.SubnetPrivateAPSOUTHEAST1A.id,
+          ],
+          scalingConfig: {
+            desiredSize: 4,
+            maxSize: 4,
+            minSize: 1,
+          },
+          updateConfig: { maxUnavailable: 2 },
+          taints: [
+            {
+              key: 'special',
+              value: 'true',
+              effect: 'NO_SCHEDULE',
+            },
+          ],
+          tags: { 'nodegroup-type': 'very-special-science-workloads' },
         },
       );
     }

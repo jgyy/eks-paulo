@@ -2,31 +2,108 @@ import * as aws from '@pulumi/aws';
 import Parameters from './param';
 
 class IAM extends Parameters {
+  nodeInstanceRole: aws.iam.Role | null = null;
+
+  policyAutoScaling: aws.iam.Policy | null = null;
+
   policyCloudWatchMetrics: aws.iam.Policy | null = null;
+
+  policyEBS: aws.iam.Policy | null = null;
+
+  policyEFS: aws.iam.Policy | null = null;
+
+  policyEFSEC2: aws.iam.Policy | null = null;
 
   policyELBPermissions: aws.iam.Policy | null = null;
 
-  NodeInstanceRole = () => new aws.iam.Role(
-    'NodeInstanceRole',
-    {
-      assumeRolePolicy: JSON.stringify({
-        Statement: [{
-          Action: 'sts:AssumeRole',
-          Effect: 'Allow',
-          Principal: { Service: 'ec2.amazonaws.com' },
-        }],
-        Version: '2012-10-17',
-      }),
-      managedPolicyArns: [
-        this.AmazonEC2ContainerRegistryReadOnly,
-        this.AmazonEKSWorkerNodePolicy,
-        this.AmazonEKSCNIPolicy,
-        this.AmazonSSMManagedInstanceCore,
-      ],
-      path: '/',
-      tags: { Name: `${this.StackName}/NodeInstanceRole` },
-    },
-  );
+  policyFSX: aws.iam.Policy | null = null;
+
+  policyServiceLinkRole: aws.iam.Policy | null = null;
+
+  NodeInstanceProfile = () => {
+    if (this.nodeInstanceRole) {
+      return new aws.iam.InstanceProfile(
+        'NodeInstanceProfile',
+        { role: this.nodeInstanceRole },
+      );
+    }
+    throw new Error(`nodeInstanceRole = ${this.nodeInstanceRole}`);
+  };
+
+  NodeInstanceRole = () => {
+    if (
+      this.policyAutoScaling
+      && this.policyEBS
+      && this.policyEFS
+      && this.policyEFSEC2
+      && this.policyFSX
+      && this.policyServiceLinkRole
+    ) {
+      this.nodeInstanceRole = new aws.iam.Role(
+        'NodeInstanceRole',
+        {
+          assumeRolePolicy: JSON.stringify({
+            Statement: [{
+              Action: 'sts:AssumeRole',
+              Effect: 'Allow',
+              Principal: { Service: 'ec2.amazonaws.com' },
+            }],
+            Version: '2012-10-17',
+          }),
+          managedPolicyArns: [
+            this.AmazonEC2ContainerRegistryReadOnly,
+            this.AmazonEKSWorkerNodePolicy,
+            this.AmazonEKSCNIPolicy,
+            this.AmazonSSMManagedInstanceCore,
+            this.policyAutoScaling.arn,
+            this.policyEBS.arn,
+            this.policyEFS.arn,
+            this.policyEFSEC2.arn,
+            this.policyFSX.arn,
+            this.policyServiceLinkRole.arn,
+          ],
+          path: '/',
+          tags: { Name: `${this.StackName}/NodeInstanceRole` },
+        },
+      );
+      return this.nodeInstanceRole;
+    }
+    throw new Error(`
+    policyAutoScaling = ${this.policyAutoScaling}
+    policyEBS = ${this.policyEBS}
+    policyEFS = ${this.policyEFS}
+    policyEFSEC2 = ${this.policyEFSEC2}
+    policyFSX = ${this.policyFSX}
+    policyServiceLinkRole = ${this.policyServiceLinkRole}
+    `);
+  };
+
+  PolicyAutoScaling = () => {
+    this.policyAutoScaling = new aws.iam.Policy(
+      'PolicyAutoScaling',
+      {
+        policy: JSON.stringify({
+          Statement: [{
+            Action: [
+              'autoscaling:DescribeAutoScalingGroups',
+              'autoscaling:DescribeAutoScalingInstances',
+              'autoscaling:DescribeLaunchConfigurations',
+              'autoscaling:DescribeTags',
+              'autoscaling:SetDesiredCapacity',
+              'autoscaling:TerminateInstanceInAutoScalingGroup',
+              'ec2:DescribeInstanceTypes',
+              'ec2:DescribeLaunchTemplateVersions',
+            ],
+            Effect: 'Allow',
+            Resource: '*',
+          }],
+          Version: '2012-10-17',
+        }),
+        name: `${this.StackName}-PolicyAutoScaling`,
+      },
+    );
+    return this.policyAutoScaling;
+  };
 
   PolicyCloudWatchMetrics = () => {
     this.policyCloudWatchMetrics = new aws.iam.Policy(
@@ -44,6 +121,172 @@ class IAM extends Parameters {
       },
     );
     return this.policyCloudWatchMetrics;
+  };
+
+  PolicyEBS = () => {
+    this.policyEBS = new aws.iam.Policy(
+      'PolicyEBS',
+      {
+        policy: JSON.stringify({
+          Statement: [
+            {
+              Action: [
+                'ec2:CreateSnapshot',
+                'ec2:AttachVolume',
+                'ec2:DetachVolume',
+                'ec2:ModifyVolume',
+                'ec2:DescribeAvailabilityZones',
+                'ec2:DescribeInstances',
+                'ec2:DescribeSnapshots',
+                'ec2:DescribeTags',
+                'ec2:DescribeVolumes',
+                'ec2:DescribeVolumesModifications',
+              ],
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:CreateTags'],
+              Condition: {
+                StringEquals: {
+                  'ec2:CreateAction': [
+                    'CreateVolume',
+                    'CreateSnapshot',
+                  ],
+                },
+              },
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:ec2:*:*:volume/*',
+                'arn:aws:ec2:*:*:snapshot/*',
+              ],
+            },
+            {
+              Action: ['ec2:DeleteTags'],
+              Effect: 'Allow',
+              Resource: [
+                'arn:aws:ec2:*:*:volume/*',
+                'arn:aws:ec2:*:*:snapshot/*',
+              ],
+            },
+            {
+              Action: ['ec2:CreateVolume'],
+              Condition: {
+                StringLike: { 'aws:RequestTag/ebs.csi.aws.com/cluster': 'true' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:CreateVolume'],
+              Condition: {
+                StringLike: { 'aws:RequestTag/CSIVolumeName': '*' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:CreateVolume'],
+              Condition: {
+                StringLike: { 'aws:RequestTag/kubernetes.io/cluster/*': 'owned' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:DeleteVolume'],
+              Condition: {
+                StringLike: { 'ec2:ResourceTag/ebs.csi.aws.com/cluster': 'true' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:DeleteVolume'],
+              Condition: {
+                StringLike: { 'ec2:ResourceTag/CSIVolumeName': '*' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:DeleteVolume'],
+              Condition: {
+                StringLike: { 'ec2:ResourceTag/kubernetes.io/cluster/*': 'owned' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:DeleteSnapshot'],
+              Condition: {
+                StringLike: { 'ec2:ResourceTag/CSIVolumeSnapshotName': '*' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+            {
+              Action: ['ec2:DeleteSnapshot'],
+              Condition: {
+                StringLike: { 'ec2:ResourceTag/ebs.csi.aws.com/cluster': 'true' },
+              },
+              Effect: 'Allow',
+              Resource: '*',
+            },
+          ],
+          Version: '2012-10-17',
+        }),
+        name: `${this.StackName}-PolicyEBS`,
+      },
+    );
+    return this.policyEBS;
+  };
+
+  PolicyEFS = () => {
+    this.policyEFS = new aws.iam.Policy(
+      'PolicyEFS',
+      {
+        policy: JSON.stringify({
+          Statement: [
+            {
+              Action: ['elasticfilesystem:*'],
+              Effect: 'Allow',
+              Resource: '*',
+            },
+          ],
+          Version: '2012-10-17',
+        }),
+        name: `${this.StackName}-PolicyEFS`,
+      },
+    );
+    return this.policyEFS;
+  };
+
+  PolicyEFSEC2 = () => {
+    this.policyEFSEC2 = new aws.iam.Policy(
+      'PolicyEFSEC2',
+      {
+        policy: JSON.stringify({
+          Statement: [
+            {
+              Action: [
+                'ec2:DescribeSubnets',
+                'ec2:CreateNetworkInterface',
+                'ec2:DescribeNetworkInterfaces',
+                'ec2:DeleteNetworkInterface',
+                'ec2:ModifyNetworkInterfaceAttribute',
+                'ec2:DescribeNetworkInterfaceAttribute',
+              ],
+              Effect: 'Allow',
+              Resource: '*',
+            },
+          ],
+          Version: '2012-10-17',
+        }),
+        name: `${this.StackName}-PolicyEFSEC2`,
+      },
+    );
+    return this.policyEFSEC2;
   };
 
   PolicyELBPermissions = () => {
@@ -66,6 +309,46 @@ class IAM extends Parameters {
       },
     );
     return this.policyELBPermissions;
+  };
+
+  PolicyFSX = () => {
+    this.policyFSX = new aws.iam.Policy(
+      'PolicyFSX',
+      {
+        policy: JSON.stringify({
+          Statement: [{
+            Action: ['fsx:*'],
+            Effect: 'Allow',
+            Resource: '*',
+          }],
+          Version: '2012-10-17',
+        }),
+        name: `${this.StackName}-PolicyFSX`,
+      },
+    );
+    return this.policyFSX;
+  };
+
+  PolicyServiceLinkRole = () => {
+    this.policyServiceLinkRole = new aws.iam.Policy(
+      'PolicyServiceLinkRole',
+      {
+        policy: JSON.stringify({
+          Statement: [{
+            Action: [
+              'iam:CreateServiceLinkedRole',
+              'iam:AttachRolePolicy',
+              'iam:PutRolePolicy',
+            ],
+            Effect: 'Allow',
+            Resource: '*',
+          }],
+          Version: '2012-10-17',
+        }),
+        name: `${this.StackName}-PolicyServiceLinkRole`,
+      },
+    );
+    return this.policyServiceLinkRole;
   };
 
   ServiceRole = () => {

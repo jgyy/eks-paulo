@@ -27,9 +27,9 @@ class Parameters {
 
   AvailabilityZones = aws.getAvailabilityZones({
     state: 'available',
-  }).then((a) => a.names);
+  });
 
-  StackName = 'cluster-3';
+  StackName = 'cluster-7';
 }
 
 export default Parameters;
