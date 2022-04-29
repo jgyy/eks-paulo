@@ -29,7 +29,7 @@ class Parameters {
     state: 'available',
   }).then((a) => a.names);
 
-  StackName = 'cluster-6';
+  StackName = 'Default';
 }
 
 export default Parameters;

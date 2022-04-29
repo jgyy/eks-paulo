@@ -27,7 +27,7 @@ nodeGroups:
     instanceType: m5.large
     desiredCapacity: 1
     ssh: # import inline public key
-      publicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDqZEdzvHnK/GVP8nLngRHu/GDi/3PeES7+Bx6l3koXn/Oi/UmM9/jcW5XGziZ/oe1cPJ777eZV7muEvXg5ZMQBrYxUtYCdvd8Rt6DIoSqDLsIPqbuuNlQoBHq/PU2IjpWnp/wrJQXMk94IIrGjY8QHfCnpuMENCucVaifgAhwyeyuO5KiqUmD8E0RmcsotHKBV9X8H5eqLXd8zMQaPl+Ub7j5PG+9KftQu0F/QhdFvpSLsHaxvBzA5nhIltjkaFcwGQnD1rpCM3+UnQE7Izoa5Yt1xoUWRwnF+L2TKovW7+bYQ1kxsuuiX149jXTCJDVjkYCqi7HkrXYqcC1sbsror someuser@hostname"
+      publicKey: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDD0EKrP4pAUj38dH+d7qDw9lKhpA1UKs8g18NwoNdGukLtHhhkTxXWibXZYGfQpbfx5TuFgY6v20AARd7+uQJuA5O2Rb39gAWQqQPK85SN46jaPhVa7NUktEwhjRNrbWahc0Yph9sJkVxFjKSswoD1LXb85tAsrtAPJ8pubx/8facRLbWZP3BJr3DOoDQPzh1nghizFios+dmlMj1xur+mIdn9Ha3nYvktk72ACnnoNqyCi2n2cbLE2J8niDRFfbilfqo9R/X3cBZQ28nyUwqsP/5ZM8A5KCmsQCNA3BcQB1DnV1k54fHaAFZjp781qPBi13rSBgRUH9LmfAl7uXL47JzUm8JypTn8ApjJWNm7U+KHo1mrJb74ZnWnkVmyrXYQAH+0jJQWhUO1eZvehHmKUwOdrj34XUV7O7Vxotgmh9+waXb0PpBtMndElpk7mksJSrTii4gWnTRhk3mzKe+rfqDVvUw1eS3BKNqTxyqqv+CtvbKinDtIPWUIfx9kYJE= jgyy@Jeffreys-MacBook-Pro.local"
   - name: ng-5
     instanceType: m5.large
     desiredCapacity: 1
