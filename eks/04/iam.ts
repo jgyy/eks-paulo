@@ -2,80 +2,51 @@ import * as aws from '@pulumi/aws';
 import Parameters from './param';
 
 class IAM extends Parameters {
-  nodeInstanceRole: aws.iam.Role | null = null;
-
-  policyAutoScaling: aws.iam.Policy | null = null;
-
-  policyCloudWatchMetrics: aws.iam.Policy | null = null;
-
-  policyEBS: aws.iam.Policy | null = null;
-
-  policyEFS: aws.iam.Policy | null = null;
-
-  policyEFSEC2: aws.iam.Policy | null = null;
-
-  policyELBPermissions: aws.iam.Policy | null = null;
-
-  policyFSX: aws.iam.Policy | null = null;
-
-  policyServiceLinkRole: aws.iam.Policy | null = null;
-
   NodeInstanceProfile = () => {
-    if (this.nodeInstanceRole) {
-      return new aws.iam.InstanceProfile(
-        'NodeInstanceProfile',
-        { role: this.nodeInstanceRole },
-      );
-    }
-    throw new Error(`nodeInstanceRole = ${this.nodeInstanceRole}`);
+    this.CheckCreated('nodeInstanceRole');
+    return new aws.iam.InstanceProfile(
+      'NodeInstanceProfile',
+      { role: this.nodeInstanceRole },
+    );
   };
 
   NodeInstanceRole = () => {
-    if (
-      this.policyAutoScaling
-      && this.policyEBS
-      && this.policyEFS
-      && this.policyEFSEC2
-      && this.policyFSX
-      && this.policyServiceLinkRole
-    ) {
-      this.nodeInstanceRole = new aws.iam.Role(
-        'NodeInstanceRole',
-        {
-          assumeRolePolicy: JSON.stringify({
-            Statement: [{
-              Action: 'sts:AssumeRole',
-              Effect: 'Allow',
-              Principal: { Service: 'ec2.amazonaws.com' },
-            }],
-            Version: '2012-10-17',
-          }),
-          managedPolicyArns: [
-            this.AmazonEC2ContainerRegistryReadOnly,
-            this.AmazonEKSWorkerNodePolicy,
-            this.AmazonEKSCNIPolicy,
-            this.AmazonSSMManagedInstanceCore,
-            this.policyAutoScaling.arn,
-            this.policyEBS.arn,
-            this.policyEFS.arn,
-            this.policyEFSEC2.arn,
-            this.policyFSX.arn,
-            this.policyServiceLinkRole.arn,
-          ],
-          path: '/',
-          tags: { Name: `${this.StackName}/NodeInstanceRole` },
-        },
-      );
-      return this.nodeInstanceRole;
-    }
-    throw new Error(`
-    policyAutoScaling = ${this.policyAutoScaling}
-    policyEBS = ${this.policyEBS}
-    policyEFS = ${this.policyEFS}
-    policyEFSEC2 = ${this.policyEFSEC2}
-    policyFSX = ${this.policyFSX}
-    policyServiceLinkRole = ${this.policyServiceLinkRole}
-    `);
+    this.CheckCreated(
+      'policyAutoScaling',
+      'policyEBS',
+      'policyEFS',
+      'policyEFSEC2',
+      'policyFSX',
+      'policyServiceLinkRole',
+    );
+    this.nodeInstanceRole = new aws.iam.Role(
+      'NodeInstanceRole',
+      {
+        assumeRolePolicy: JSON.stringify({
+          Statement: [{
+            Action: 'sts:AssumeRole',
+            Effect: 'Allow',
+            Principal: { Service: 'ec2.amazonaws.com' },
+          }],
+          Version: '2012-10-17',
+        }),
+        managedPolicyArns: [
+          this.AmazonEC2ContainerRegistryReadOnly(),
+          this.AmazonEKSWorkerNodePolicy(),
+          this.AmazonEKSCNIPolicy(),
+          this.AmazonSSMManagedInstanceCore(),
+          this.policyAutoScaling.arn,
+          this.policyEBS.arn,
+          this.policyEFS.arn,
+          this.policyEFSEC2.arn,
+          this.policyFSX.arn,
+          this.policyServiceLinkRole.arn,
+        ],
+        path: '/',
+        tags: { Name: `${this.StackName}/NodeInstanceRole` },
+      },
+    );
+    return this.nodeInstanceRole;
   };
 
   PolicyAutoScaling = () => {
@@ -352,32 +323,27 @@ class IAM extends Parameters {
   };
 
   ServiceRole = () => {
-    if (this.policyCloudWatchMetrics && this.policyELBPermissions) {
-      return new aws.iam.Role(
-        'ServiceRole',
-        {
-          assumeRolePolicy: JSON.stringify({
-            Statement: [{
-              Action: 'sts:AssumeRole',
-              Effect: 'Allow',
-              Principal: { Service: 'eks.amazonaws.com' },
-            }],
-            Version: '2012-10-17',
-          }),
-          managedPolicyArns: [
-            this.AmazonEKSClusterPolicy,
-            this.AmazonEKSVPCResourceController,
-            this.policyCloudWatchMetrics.arn,
-            this.policyELBPermissions.arn,
-          ],
-          tags: { Name: `${this.StackName}/ServiceRole` },
-        },
-      );
-    }
-    throw new Error(`
-    policyCloudWatchMetrics = ${this.policyCloudWatchMetrics}
-    policyELBPermissions = ${this.policyELBPermissions}
-    `);
+    this.CheckCreated('policyCloudWatchMetrics', 'policyELBPermissions');
+    return new aws.iam.Role(
+      'ServiceRole',
+      {
+        assumeRolePolicy: JSON.stringify({
+          Statement: [{
+            Action: 'sts:AssumeRole',
+            Effect: 'Allow',
+            Principal: { Service: 'eks.amazonaws.com' },
+          }],
+          Version: '2012-10-17',
+        }),
+        managedPolicyArns: [
+          this.AmazonEKSClusterPolicy(),
+          this.AmazonEKSVPCResourceController(),
+          this.policyCloudWatchMetrics.arn,
+          this.policyELBPermissions.arn,
+        ],
+        tags: { Name: `${this.StackName}/ServiceRole` },
+      },
+    );
   };
 }
 

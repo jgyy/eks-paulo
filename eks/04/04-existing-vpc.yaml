@@ -8,22 +8,22 @@ metadata:
   region: ap-southeast-1
 
 vpc:
-  id: "vpc-03f10ad6ba174f5d8"  # (optional, must match VPC ID used for each subnet below)
+  id: "vpc-07df1aec69bea39c1"  # (optional, must match VPC ID used for each subnet below)
   cidr: "10.0.0.0/16"       # (optional, must match CIDR used by the given VPC)
   subnets:
     # must provide 'private' and/or 'public' subnets by availibility zone as shown
     private:
       ap-southeast-1a:
-        id: "subnet-0b2512f8c6ae9bf30"
-        cidr: "192.168.128.0/19" # (optional, must match CIDR used by the given subnet)
+        id: "subnet-0017fecd1a88ec537"
+        cidr: "10.0.0.0/19" # (optional, must match CIDR used by the given subnet)
 
       ap-southeast-1b:
-        id: "subnet-08cb9a2ed60394ce3"
-        cidr: "192.168.64.0/19"  # (optional, must match CIDR used by the given subnet)
+        id: "subnet-076431fa2368822c6"
+        cidr: "10.0.32.0/19"  # (optional, must match CIDR used by the given subnet)
 
       ap-southeast-1c:
-        id: "subnet-00f71956cdec8f1dc"
-        cidr: "192.168.0.0/19"   # (optional, must match CIDR used by the given subnet)
+        id: "subnet-0d79844b441e40a5e"
+        cidr: "10.0.64.0/19"   # (optional, must match CIDR used by the given subnet)
 
 nodeGroups:
   - name: ng-1
