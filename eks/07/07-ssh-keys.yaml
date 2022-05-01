@@ -12,7 +12,7 @@ nodeGroups:
     instanceType: m5.large
     desiredCapacity: 1
     ssh: # import public key from file
-      publicKeyPath: ~/.ssh/id_rsa_tests.pub
+      publicKeyPath: "~/.ssh/id_rsa_tests.pub"
   - name: ng-2
     instanceType: m5.large
     desiredCapacity: 1

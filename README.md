@@ -6,6 +6,7 @@ Deploy Docker Containers on Kubernetes on AWS EKS &amp; Fargate: Kubernetes Stat
 
 ```sh
 brew install pulumi node
+export PULUMI_CONFIG_PASSPHRASE=""
 pulumi login --local
 pulumi new aws-typescript
 pulumi up
