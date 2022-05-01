@@ -19,6 +19,7 @@
         "@pulumi/eks": "^0.37.1",
         "@pulumi/pulumi": "^3.30.0",
         "@pulumi/terraform": "^5.5.1",
-        "cdktf": "^0.10.2"
+        "cdktf": "^0.10.2",
+        "fs": "^0.0.1-security"
     }
 }

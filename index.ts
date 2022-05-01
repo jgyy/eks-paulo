@@ -1,7 +1,7 @@
-import CF from './eks/08/cf';
-import EC2 from './eks/08/ec2';
-import EKS from './eks/08/eks';
-import IAM from './eks/08/iam';
+import CF from './eks/09/cf';
+import EC2 from './eks/09/ec2';
+import EKS from './eks/09/eks';
+import IAM from './eks/09/iam';
 
 const cf = new CF();
 const ec2 = new EC2();
@@ -27,8 +27,12 @@ const SubnetPublicAPSOUTHEAST1A = ec2.SubnetPublicAPSOUTHEAST1A();
 const SubnetPublicAPSOUTHEAST1B = ec2.SubnetPublicAPSOUTHEAST1B();
 const SubnetPublicAPSOUTHEAST1C = ec2.SubnetPublicAPSOUTHEAST1C();
 
-ec2.NATIP();
-ec2.NATGateway();
+ec2.NATIPAPSOUTHEAST1A();
+ec2.NATIPAPSOUTHEAST1B();
+ec2.NATIPAPSOUTHEAST1C();
+ec2.NATGatewayAPSOUTHEAST1A();
+ec2.NATGatewayAPSOUTHEAST1B();
+ec2.NATGatewayAPSOUTHEAST1C();
 ec2.NATPrivateSubnetRouteAPSOUTHEAST1A();
 ec2.NATPrivateSubnetRouteAPSOUTHEAST1B();
 ec2.NATPrivateSubnetRouteAPSOUTHEAST1C();
@@ -45,6 +49,7 @@ ec2.RouteTableAssociationPublicAPSOUTHEAST1C();
 iam.PolicyCloudWatchMetrics();
 iam.PolicyELBPermissions();
 eks.serviceRole = iam.ServiceRole();
+eks.devKey = ec2.DevKey();
 eks.subnetPrivateAPSOUTHEAST1A = SubnetPrivateAPSOUTHEAST1A;
 eks.subnetPrivateAPSOUTHEAST1B = SubnetPrivateAPSOUTHEAST1B;
 eks.subnetPrivateAPSOUTHEAST1C = SubnetPrivateAPSOUTHEAST1C;

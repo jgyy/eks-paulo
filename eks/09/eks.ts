@@ -58,6 +58,7 @@ class EKS extends Parameters {
   NodeGroupOnePublic = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPublicAPSOUTHEAST1A',
       'subnetPublicAPSOUTHEAST1B',
@@ -88,6 +89,7 @@ class EKS extends Parameters {
         diskSize: 100,
         amiType: 'AL2_x86_64',
         updateConfig: { maxUnavailable: 2 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
         tags: { 'nodegroup-type': 'frontend-workloads' },
       },
     );
@@ -96,6 +98,7 @@ class EKS extends Parameters {
   NodeGroupTwoPrivateA = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPrivateAPSOUTHEAST1A',
       'subnetPrivateAPSOUTHEAST1B',
@@ -119,6 +122,7 @@ class EKS extends Parameters {
           minSize: 1,
         },
         updateConfig: { maxUnavailable: 2 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
         tags: { 'nodegroup-type': 'backend-cluster-addons' },
       },
     );
@@ -127,6 +131,7 @@ class EKS extends Parameters {
   NodeGroupThreePrivateB = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPrivateAPSOUTHEAST1A',
       'subnetPrivateAPSOUTHEAST1B',
@@ -150,6 +155,7 @@ class EKS extends Parameters {
           minSize: 1,
         },
         updateConfig: { maxUnavailable: 2 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
         taints: [
           {
             key: 'special',
@@ -165,6 +171,7 @@ class EKS extends Parameters {
   NodeGroupFour = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPrivateAPSOUTHEAST1A',
       'subnetPrivateAPSOUTHEAST1B',
@@ -188,6 +195,7 @@ class EKS extends Parameters {
           minSize: 1,
         },
         updateConfig: { maxUnavailable: 1 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
       },
     );
   };
@@ -195,6 +203,7 @@ class EKS extends Parameters {
   NodeGroupFive = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPrivateAPSOUTHEAST1A',
       'subnetPrivateAPSOUTHEAST1B',
@@ -218,6 +227,7 @@ class EKS extends Parameters {
           minSize: 1,
         },
         updateConfig: { maxUnavailable: 1 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
       },
     );
   };
@@ -225,6 +235,7 @@ class EKS extends Parameters {
   NodeGroupSix = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPrivateAPSOUTHEAST1A',
       'subnetPrivateAPSOUTHEAST1B',
@@ -248,6 +259,7 @@ class EKS extends Parameters {
           minSize: 1,
         },
         updateConfig: { maxUnavailable: 1 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
       },
     );
   };
@@ -255,6 +267,7 @@ class EKS extends Parameters {
   NodeGroupSeven = () => {
     this.CheckCreated(
       'controlPlane',
+      'devKey',
       'nodeInstanceRole',
       'subnetPrivateAPSOUTHEAST1A',
       'subnetPrivateAPSOUTHEAST1B',
@@ -278,6 +291,7 @@ class EKS extends Parameters {
           minSize: 1,
         },
         updateConfig: { maxUnavailable: 1 },
+        remoteAccess: { ec2SshKey: this.devKey.id },
       },
     );
   };
