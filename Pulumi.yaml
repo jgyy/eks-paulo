@@ -1,3 +1,0 @@
-name: eks-paulo
-runtime: nodejs
-description: A minimal AWS TypeScript Pulumi program
