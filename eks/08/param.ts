@@ -17,7 +17,7 @@ class Parameters extends Resources {
 
   getPolicy = aws.iam.getPolicy;
 
-  StackName = 'cluster-7';
+  StackName = 'cluster-8';
 
   AmazonEC2ContainerRegistryReadOnly = () => pulumi.output(
     this.getPolicy({

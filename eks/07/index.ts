@@ -1,7 +1,7 @@
-import CF from './eks/08/cf';
-import EC2 from './eks/08/ec2';
-import EKS from './eks/08/eks';
-import IAM from './eks/08/iam';
+import CF from './eks/07/cf';
+import EC2 from './eks/07/ec2';
+import EKS from './eks/07/eks';
+import IAM from './eks/07/iam';
 
 const cf = new CF();
 const ec2 = new EC2();
@@ -65,11 +65,17 @@ iam.PolicyEFS();
 iam.PolicyEFSEC2();
 iam.PolicyFSX();
 iam.PolicyServiceLinkRole();
-
 eks.nodeInstanceRole = iam.NodeInstanceRole();
+
 const NodeInstanceRole = eks.nodeInstanceRole;
 const NodeInstanceProfile = iam.NodeInstanceProfile();
 eks.NodeGroupOnePublic();
+eks.NodeGroupTwoPrivateA();
+eks.NodeGroupThreePrivateB();
+eks.NodeGroupFour();
+eks.NodeGroupFive();
+eks.NodeGroupSix();
+eks.NodeGroupSeven();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
