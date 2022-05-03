@@ -6,13 +6,11 @@ metadata:
   name: cluster-28
   region: ap-southeast-1
 
-nodeGroups:
+managedNodeGroups:
 - name: ng
   instanceSelector:
     vCPUs: 2
     memory: "4" # 4 GiB, unit defaults to GiB
-
-managedNodeGroups:
 - name: mng
   instanceSelector:
     vCPUs: 2

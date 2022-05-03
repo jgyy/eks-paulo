@@ -8,13 +8,11 @@ metadata:
   name: cluster-14
   region: ap-southeast-1
 
-nodeGroups:
+managedNodeGroups:
   - name: windows-ng
     amiFamily: WindowsServer2019FullContainer
     minSize: 2
     maxSize: 3
-
-managedNodeGroups:
   - name: linux-ng
     instanceType: t2.large
     minSize: 2

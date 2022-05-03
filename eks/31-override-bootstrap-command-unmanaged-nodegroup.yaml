@@ -4,9 +4,9 @@ kind: ClusterConfig
 metadata:
   name: override-unmanaged-nodegroup-bootstrap
   region: ap-southeast-1
-  version: '1.21'
+  version: '1.22'
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     minSize: 1
     maxSize: 2

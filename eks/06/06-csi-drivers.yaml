@@ -7,7 +7,7 @@ metadata:
   name: cluster-6
   region: ap-southeast-1
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     instanceType: m5.large
     iam:

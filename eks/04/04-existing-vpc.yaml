@@ -25,7 +25,7 @@ vpc:
         id: "subnet-0d79844b441e40a5e"
         cidr: "10.0.64.0/19"   # (optional, must match CIDR used by the given subnet)
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     instanceType: m5.xlarge
     desiredCapacity: 2

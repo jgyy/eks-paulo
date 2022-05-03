@@ -21,7 +21,7 @@ metadata:
   name: cluster-18
   region: ap-southeast-1
 
-nodeGroups:
+managedNodeGroups:
   - name: std-ng
     instanceType: m5.xlarge
     desiredCapacity: 8

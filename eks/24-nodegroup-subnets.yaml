@@ -28,7 +28,7 @@ vpc:
       private-three:
         id: subnet-0a96e24163ef2c9c3
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     instanceType: m5.xlarge
     desiredCapacity: 2

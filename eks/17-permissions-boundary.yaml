@@ -22,7 +22,7 @@ iam:
       - "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
       permissionsBoundary: "arn:aws:iam::11111:policy/entity/boundary"
 
-nodeGroups:
+managedNodeGroups:
   - name: "ng-1"
     desiredCapacity: 1
     iam:

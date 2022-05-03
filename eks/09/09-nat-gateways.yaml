@@ -11,7 +11,7 @@ vpc:
   nat:
     gateway: HighlyAvailable # other options: Disable, Single (default)
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     instanceType: m5.xlarge
     desiredCapacity: 2

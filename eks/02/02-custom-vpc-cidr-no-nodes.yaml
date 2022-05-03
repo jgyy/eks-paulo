@@ -17,4 +17,4 @@ vpc:
     publicAccess: false
     privateAccess: true
 
-nodeGroups: []
+managedNodeGroups: []

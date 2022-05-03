@@ -32,7 +32,7 @@ metadata:
 # This list applies to the whole clustr and isn't specific to nodegroups
 availabilityZones: ["us-east-1a", "us-east-1b",  "us-east-1d",  "us-east-1f"]
 
-nodeGroups:
+managedNodeGroups:
   - name: ng-1
     desiredCapacity: 2
     minSize: 0
