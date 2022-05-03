@@ -1,194 +1,152 @@
 import * as aws from '@pulumi/aws';
 import Parameters from './param';
+import Resources from './resource';
 
 class EKS extends Parameters {
-  controlPlane: aws.eks.Cluster | null = null;
-
-  ControlPlaneSecurityGroup: aws.ec2.SecurityGroup | null = null;
-
-  NodeInstanceRole: aws.iam.Role | null = null;
-
-  ServiceRole: aws.iam.Role | null = null;
-
-  SubnetPrivateAPSOUTHEAST1C: aws.ec2.Subnet | null = null;
-
-  SubnetPrivateAPSOUTHEAST1B: aws.ec2.Subnet | null = null;
-
-  SubnetPrivateAPSOUTHEAST1A: aws.ec2.Subnet | null = null;
-
-  SubnetPublicAPSOUTHEAST1C: aws.ec2.Subnet | null = null;
-
-  SubnetPublicAPSOUTHEAST1B: aws.ec2.Subnet | null = null;
-
-  SubnetPublicAPSOUTHEAST1A: aws.ec2.Subnet | null = null;
+  constructor(resource: Resources) {
+    super();
+    this.resource = resource;
+  }
 
   ControlPlane = () => {
-    if (
-      this.ControlPlaneSecurityGroup
-      && this.SubnetPublicAPSOUTHEAST1C
-      && this.SubnetPublicAPSOUTHEAST1B
-      && this.SubnetPublicAPSOUTHEAST1A
-      && this.SubnetPrivateAPSOUTHEAST1C
-      && this.SubnetPrivateAPSOUTHEAST1B
-      && this.SubnetPrivateAPSOUTHEAST1A
-      && this.ServiceRole
-    ) {
-      this.controlPlane = new aws.eks.Cluster(
-        this.StackName,
-        {
-          kubernetesNetworkConfig: {},
-          enabledClusterLogTypes: [
-            'audit',
-            'authenticator',
-            'controllerManager',
+    this.CheckCreated(
+      'controlPlaneSecurityGroup',
+      'subnetPublicAPSOUTHEAST1A',
+      'subnetPublicAPSOUTHEAST1B',
+      'subnetPublicAPSOUTHEAST1C',
+      'subnetPrivateAPSOUTHEAST1A',
+      'subnetPrivateAPSOUTHEAST1B',
+      'subnetPrivateAPSOUTHEAST1C',
+      'serviceRole',
+    );
+    this.resource.controlPlane = new aws.eks.Cluster(
+      this.StackName,
+      {
+        kubernetesNetworkConfig: {},
+        enabledClusterLogTypes: [
+          'audit',
+          'authenticator',
+          'controllerManager',
+        ],
+        name: this.StackName,
+        vpcConfig: {
+          endpointPrivateAccess: false,
+          endpointPublicAccess: true,
+          securityGroupIds: [this.resource.controlPlaneSecurityGroup.id],
+          subnetIds: [
+            this.resource.subnetPublicAPSOUTHEAST1C.id,
+            this.resource.subnetPublicAPSOUTHEAST1B.id,
+            this.resource.subnetPublicAPSOUTHEAST1A.id,
+            this.resource.subnetPrivateAPSOUTHEAST1C.id,
+            this.resource.subnetPrivateAPSOUTHEAST1B.id,
+            this.resource.subnetPrivateAPSOUTHEAST1A.id,
           ],
-          name: this.StackName,
-          vpcConfig: {
-            endpointPrivateAccess: false,
-            endpointPublicAccess: true,
-            securityGroupIds: [this.ControlPlaneSecurityGroup.id],
-            subnetIds: [
-              this.SubnetPublicAPSOUTHEAST1C.id,
-              this.SubnetPublicAPSOUTHEAST1B.id,
-              this.SubnetPublicAPSOUTHEAST1A.id,
-              this.SubnetPrivateAPSOUTHEAST1C.id,
-              this.SubnetPrivateAPSOUTHEAST1B.id,
-              this.SubnetPrivateAPSOUTHEAST1A.id,
-            ],
-          },
-          roleArn: this.ServiceRole.arn,
-          tags: { Name: `${this.StackName}/${this.StackName}` },
-          version: '1.22',
         },
-      );
-      return this.controlPlane;
-    }
-    throw new Error(`
-    ControlPlaneSecurityGroup = ${this.ControlPlaneSecurityGroup}
-    SubnetPublicAPSOUTHEAST1C = ${this.SubnetPublicAPSOUTHEAST1C}
-    SubnetPublicAPSOUTHEAST1B = ${this.SubnetPublicAPSOUTHEAST1B}
-    SubnetPublicAPSOUTHEAST1A = ${this.SubnetPublicAPSOUTHEAST1A}
-    SubnetPrivateAPSOUTHEAST1C = ${this.SubnetPrivateAPSOUTHEAST1C}
-    SubnetPrivateAPSOUTHEAST1B = ${this.SubnetPrivateAPSOUTHEAST1B}
-    SubnetPrivateAPSOUTHEAST1A = ${this.SubnetPrivateAPSOUTHEAST1A}
-    ServiceRole = ${this.ServiceRole}
-    `);
+        roleArn: this.resource.serviceRole.arn,
+        tags: { Name: `${this.StackName}/${this.StackName}` },
+        version: '1.22',
+      },
+    );
+    return this.resource.controlPlane;
   };
 
-  NodeGroupOne = () => {
-    if (
-      this.controlPlane
-      && this.NodeInstanceRole
-      && this.SubnetPrivateAPSOUTHEAST1A
-      && this.SubnetPrivateAPSOUTHEAST1B
-      && this.SubnetPrivateAPSOUTHEAST1C
-    ) {
-      return new aws.eks.NodeGroup(
-        'ng-1',
-        {
-          nodeGroupName: 'ng-1',
-          instanceTypes: ['m5.large'],
-          clusterName: this.controlPlane.name,
-          nodeRoleArn: this.NodeInstanceRole.arn,
-          subnetIds: [
-            this.SubnetPrivateAPSOUTHEAST1C.id,
-            this.SubnetPrivateAPSOUTHEAST1B.id,
-            this.SubnetPrivateAPSOUTHEAST1A.id,
-          ],
-          scalingConfig: {
-            desiredSize: 1,
-            maxSize: 1,
-            minSize: 1,
-          },
-          updateConfig: { maxUnavailable: 1 },
-        },
-      );
-    }
-    throw new Error(`
-    controlPlane = ${this.controlPlane}
-    SubnetPrivateAPSOUTHEAST1C = ${this.SubnetPrivateAPSOUTHEAST1C}
-    SubnetPrivateAPSOUTHEAST1B = ${this.SubnetPrivateAPSOUTHEAST1B}
-    SubnetPrivateAPSOUTHEAST1A = ${this.SubnetPrivateAPSOUTHEAST1A}
-    NodeInstanceRole = ${this.NodeInstanceRole}
-    `);
+  NodeAddon = () => {
+    this.CheckCreated('controlPlane');
+    return new aws.eks.Addon(
+      'NodeAddon',
+      {
+        clusterName: this.resource.controlPlane.name,
+        addonName: 'vpc-cni',
+      },
+    );
   };
 
-  NodeGroupOnePublic = () => {
-    if (
-      this.controlPlane
-      && this.NodeInstanceRole
-      && this.SubnetPublicAPSOUTHEAST1A
-      && this.SubnetPublicAPSOUTHEAST1B
-      && this.SubnetPublicAPSOUTHEAST1C
-    ) {
-      return new aws.eks.NodeGroup(
-        'ng1-public',
-        {
-          nodeGroupName: 'ng1-public',
-          instanceTypes: ['m5.xlarge'],
-          clusterName: this.controlPlane.name,
-          nodeRoleArn: this.NodeInstanceRole.arn,
-          subnetIds: [
-            this.SubnetPublicAPSOUTHEAST1C.id,
-            this.SubnetPublicAPSOUTHEAST1B.id,
-            this.SubnetPublicAPSOUTHEAST1A.id,
-          ],
-          scalingConfig: {
-            desiredSize: 4,
-            maxSize: 4,
-            minSize: 4,
-          },
-          updateConfig: { maxUnavailable: 4 },
-          tags: { Name: 'custom-node-name' },
+  ManagedNodeGroupOne = () => {
+    this.CheckCreated(
+      'controlPlane',
+      'nodeInstanceRole',
+      'launchTemplateOne',
+      'subnetPublicAPSOUTHEAST1A',
+      'subnetPublicAPSOUTHEAST1B',
+      'subnetPublicAPSOUTHEAST1C',
+    );
+    this.resource.managedNodeGroupOne = new aws.eks.NodeGroup(
+      'ManagedNodeGroupOne',
+      {
+        amiType: 'AL2_x86_64',
+        clusterName: this.resource.controlPlane.name,
+        instanceTypes: ['m5.xlarge'],
+        labels: {
+          'alpha.io/cluster-name': this.StackName,
+          'alpha.io/nodegroup-name': this.NodeGroupOne,
         },
-      );
-    }
-    throw new Error(`
-    controlPlane = ${this.controlPlane}
-    SubnetPublicAPSOUTHEAST1A = ${this.SubnetPublicAPSOUTHEAST1A}
-    SubnetPublicAPSOUTHEAST1B = ${this.SubnetPublicAPSOUTHEAST1B}
-    SubnetPublicAPSOUTHEAST1C = ${this.SubnetPublicAPSOUTHEAST1C}
-    NodeInstanceRole = ${this.NodeInstanceRole}
-    `);
+        launchTemplate: {
+          id: this.resource.launchTemplateOne.id,
+          version: this.resource.launchTemplateOne.latestVersion.apply((v) => v.toString()),
+        },
+        nodeRoleArn: this.resource.nodeInstanceRole.arn,
+        nodeGroupName: this.NodeGroupOne,
+        scalingConfig: {
+          desiredSize: 4,
+          minSize: 4,
+          maxSize: 4,
+        },
+        subnetIds: [
+          this.resource.subnetPublicAPSOUTHEAST1C.id,
+          this.resource.subnetPublicAPSOUTHEAST1B.id,
+          this.resource.subnetPublicAPSOUTHEAST1A.id,
+        ],
+        tags: {
+          'alpha.io/nodegroup-name': this.NodeGroupOne,
+          'alpha.io/nodegroup-type': 'managed',
+        },
+      },
+    );
+    return this.resource.managedNodeGroupOne;
   };
 
-  NodeGroupTwoPrivate = () => {
-    if (
-      this.controlPlane
-      && this.NodeInstanceRole
-      && this.SubnetPrivateAPSOUTHEAST1C
-      && this.SubnetPrivateAPSOUTHEAST1B
-      && this.SubnetPrivateAPSOUTHEAST1A
-    ) {
-      return new aws.eks.NodeGroup(
-        'ng2-private',
-        {
-          nodeGroupName: 'ng2-private',
-          instanceTypes: ['m5.xlarge'],
-          clusterName: this.controlPlane.name,
-          nodeRoleArn: this.NodeInstanceRole.arn,
-          subnetIds: [
-            this.SubnetPrivateAPSOUTHEAST1C.id,
-            this.SubnetPrivateAPSOUTHEAST1B.id,
-            this.SubnetPrivateAPSOUTHEAST1A.id,
-          ],
-          scalingConfig: {
-            desiredSize: 10,
-            maxSize: 10,
-            minSize: 10,
-          },
-          updateConfig: { maxUnavailable: 10 },
-          tags: { Name: 'custom-node-name' },
+  ManagedNodeGroupTwo = () => {
+    this.CheckCreated(
+      'controlPlane',
+      'nodeInstanceRole',
+      'launchTemplateTwo',
+      'subnetPublicAPSOUTHEAST1A',
+      'subnetPublicAPSOUTHEAST1B',
+      'subnetPublicAPSOUTHEAST1C',
+    );
+    this.resource.managedNodeGroupTwo = new aws.eks.NodeGroup(
+      'ManagedNodeGroupTwo',
+      {
+        amiType: 'AL2_x86_64',
+        clusterName: this.resource.controlPlane.name,
+        instanceTypes: ['m5.large'],
+        labels: {
+          'alpha.io/cluster-name': this.StackName,
+          'alpha.io/nodegroup-name': this.NodeGroupTwo,
         },
-      );
-    }
-    throw new Error(`
-    controlPlane = ${this.controlPlane}
-    SubnetPrivateAPSOUTHEAST1C = ${this.SubnetPrivateAPSOUTHEAST1C}
-    SubnetPrivateAPSOUTHEAST1B = ${this.SubnetPrivateAPSOUTHEAST1B}
-    SubnetPrivateAPSOUTHEAST1A = ${this.SubnetPrivateAPSOUTHEAST1A}
-    NodeInstanceRole = ${this.NodeInstanceRole}
-    `);
+        launchTemplate: {
+          id: this.resource.launchTemplateTwo.id,
+          version: this.resource.launchTemplateTwo.latestVersion.apply((v) => v.toString()),
+        },
+        nodeRoleArn: this.resource.nodeInstanceRole.arn,
+        nodeGroupName: this.NodeGroupTwo,
+        scalingConfig: {
+          desiredSize: 10,
+          minSize: 10,
+          maxSize: 10,
+        },
+        subnetIds: [
+          this.resource.subnetPrivateAPSOUTHEAST1C.id,
+          this.resource.subnetPrivateAPSOUTHEAST1B.id,
+          this.resource.subnetPrivateAPSOUTHEAST1A.id,
+        ],
+        tags: {
+          'alpha.io/nodegroup-name': this.NodeGroupTwo,
+          'alpha.io/nodegroup-type': 'managed',
+        },
+      },
+    );
+    return this.resource.managedNodeGroupTwo;
   };
 }
 

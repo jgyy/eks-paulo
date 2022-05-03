@@ -30,58 +30,58 @@ Resources:
           HttpPutResponseHopLimit: 2
           HttpTokens: optional
         SecurityGroupIds:
-          - !ImportValue 'eksctl-cluster-2-cluster::ClusterSecurityGroupId'
+          - !ImportValue 'eksctl-cluster-3-cluster::ClusterSecurityGroupId'
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: cluster-2-ng-2-Node
-              - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-2
+                Value: cluster-3-ng2-private-Node
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
+              - Key: alpha.eksctl.io/nodegroup-name
+                Value: ng2-private
           - ResourceType: volume
             Tags:
               - Key: Name
-                Value: cluster-2-ng-2-Node
-              - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-2
+                Value: cluster-3-ng2-private-Node
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
+              - Key: alpha.eksctl.io/nodegroup-name
+                Value: ng2-private
           - ResourceType: network-interface
             Tags:
               - Key: Name
-                Value: cluster-2-ng-2-Node
-              - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-2
+                Value: cluster-3-ng2-private-Node
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
+              - Key: alpha.eksctl.io/nodegroup-name
+                Value: ng2-private
       LaunchTemplateName: !Sub '${AWS::StackName}'
   ManagedNodeGroup:
     Type: 'AWS::EKS::Nodegroup'
     Properties:
       AmiType: AL2_x86_64
-      ClusterName: cluster-2
+      ClusterName: cluster-3
       InstanceTypes:
         - m5.large
       Labels:
-        alpha.eksctl.io/cluster-name: cluster-2
-        alpha.eksctl.io/nodegroup-name: ng-2
+        alpha.eksctl.io/cluster-name: cluster-3
+        alpha.eksctl.io/nodegroup-name: ng2-private
       LaunchTemplate:
         Id: !Ref LaunchTemplate
       NodeRole: !GetAtt 
         - NodeInstanceRole
         - Arn
-      NodegroupName: ng-2
+      NodegroupName: ng2-private
       ScalingConfig:
-        DesiredSize: 1
-        MaxSize: 1
-        MinSize: 1
+        DesiredSize: 10
+        MaxSize: 10
+        MinSize: 10
       Subnets: !Split 
         - ','
-        - !ImportValue 'eksctl-cluster-2-cluster::SubnetsPublic'
+        - !ImportValue 'eksctl-cluster-3-cluster::SubnetsPrivate'
       Tags:
-        alpha.eksctl.io/nodegroup-name: ng-2
+        alpha.eksctl.io/nodegroup-name: ng2-private
         alpha.eksctl.io/nodegroup-type: managed
   NodeInstanceRole:
     Type: 'AWS::IAM::Role'

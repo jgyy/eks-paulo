@@ -1,8 +1,8 @@
-import CF from './eks/03/cf';
-import EC2 from './eks/03/ec2';
-import EKS from './eks/03/eks';
-import IAM from './eks/03/iam';
-import Resources from './eks/03/resource';
+import CF from './eks/02/cf';
+import EC2 from './eks/02/ec2';
+import EKS from './eks/02/eks';
+import IAM from './eks/02/iam';
+import Resources from './eks/02/resource';
 
 const res = new Resources();
 const cf = new CF(res);
@@ -56,6 +56,7 @@ ec2.RouteTableAssociationPublicAPSOUTHEAST1A();
 ec2.RouteTableAssociationPublicAPSOUTHEAST1B();
 ec2.RouteTableAssociationPublicAPSOUTHEAST1C();
 
+ec2.LaunchTemplate();
 iam.PolicyAutoScaling();
 iam.PolicyEBS();
 iam.PolicyEFS();
@@ -63,10 +64,7 @@ iam.PolicyEFSEC2();
 iam.PolicyFSX();
 iam.PolicyServiceLinkRole();
 iam.NodeInstanceRole();
-ec2.LaunchTemplateOne();
-ec2.LaunchTemplateTwo();
-eks.ManagedNodeGroupOne();
-eks.ManagedNodeGroupTwo();
+eks.ManagedNodeGroup();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;

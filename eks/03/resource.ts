@@ -10,11 +10,31 @@ class Resources {
 
   controlPlaneSecurityGroup: aws.ec2.SecurityGroup | null = null;
 
+  devKey: aws.ec2.KeyPair | null = null;
+
   internetGateway: aws.ec2.InternetGateway | null = null;
 
-  natGateway: aws.ec2.NatGateway | null = null;
+  launchTemplateOne: aws.ec2.LaunchTemplate | null = null;
 
-  natip: aws.ec2.Eip | null = null;
+  launchTemplateTwo: aws.ec2.LaunchTemplate | null = null;
+
+  natGatewayAPSOUTHEAST1A: aws.ec2.NatGateway | null = null;
+
+  natGatewayAPSOUTHEAST1B: aws.ec2.NatGateway | null = null;
+
+  natGatewayAPSOUTHEAST1C: aws.ec2.NatGateway | null = null;
+
+  natIPAPSOUTHEAST1A: aws.ec2.Eip | null = null;
+
+  natIPAPSOUTHEAST1B: aws.ec2.Eip | null = null;
+
+  natIPAPSOUTHEAST1C: aws.ec2.Eip | null = null;
+
+  managedNodeGroupOne: aws.eks.NodeGroup | null = null;
+
+  managedNodeGroupTwo: aws.eks.NodeGroup | null = null;
+
+  nodeInstanceProfile: aws.iam.InstanceProfile | null = null;
 
   nodeInstanceRole: aws.iam.Role | null = null;
 
@@ -43,6 +63,8 @@ class Resources {
   privateRouteTableAPSOUTHEAST1C: aws.ec2.RouteTable | null = null;
 
   publicRouteTable: aws.ec2.RouteTable | null = null;
+
+  sg: aws.ec2.SecurityGroup | null = null;
 
   subnetPrivateAPSOUTHEAST1A: aws.ec2.Subnet
     | pulumi.Output<aws.ec2.GetSubnetResult> | null = null;
