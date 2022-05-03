@@ -1,20 +1,20 @@
-import CF from './eks/02/cf';
-import EC2 from './eks/02/ec2';
-import EKS from './eks/02/eks';
-import IAM from './eks/02/iam';
-import Resources from './eks/02/resource';
+import CF from './eks/01/cf';
+import EC2 from './eks/01/ec2';
+import EKS from './eks/01/eks';
+import IAM from './eks/01/iam';
 
-const res = new Resources();
-const cf = new CF(res);
-const ec2 = new EC2(res);
-const eks = new EKS(res);
-const iam = new IAM(res);
+const cf = new CF();
+const ec2 = new EC2();
+const eks = new EKS();
+const iam = new IAM();
 
 const VPC = ec2.VPC();
+cf.vpc = VPC;
 const ClusterSharedNodeSecurityGroup = ec2.ClusterSharedNodeSecurityGroup();
 const ControlPlaneSecurityGroup = ec2.ControlPlaneSecurityGroup();
-cf.CIDR();
+eks.controlPlaneSecurityGroup = ControlPlaneSecurityGroup;
 
+ec2.cidr = cf.CIDR();
 const SubnetPrivateAPSOUTHEAST1A = ec2.SubnetPrivateAPSOUTHEAST1A();
 const SubnetPrivateAPSOUTHEAST1B = ec2.SubnetPrivateAPSOUTHEAST1B();
 const SubnetPrivateAPSOUTHEAST1C = ec2.SubnetPrivateAPSOUTHEAST1C();
@@ -25,8 +25,16 @@ const SubnetPublicAPSOUTHEAST1C = ec2.SubnetPublicAPSOUTHEAST1C();
 iam.PolicyCloudWatchMetrics();
 iam.PolicyELBPermissions();
 const ServiceRole = iam.ServiceRole();
+eks.serviceRole = ServiceRole;
+eks.subnetPrivateAPSOUTHEAST1A = SubnetPrivateAPSOUTHEAST1A;
+eks.subnetPrivateAPSOUTHEAST1B = SubnetPrivateAPSOUTHEAST1B;
+eks.subnetPrivateAPSOUTHEAST1C = SubnetPrivateAPSOUTHEAST1C;
+eks.subnetPublicAPSOUTHEAST1A = SubnetPublicAPSOUTHEAST1A;
+eks.subnetPublicAPSOUTHEAST1B = SubnetPublicAPSOUTHEAST1B;
+eks.subnetPublicAPSOUTHEAST1C = SubnetPublicAPSOUTHEAST1C;
 const ControlPlane = eks.ControlPlane();
 
+ec2.controlPlane = ControlPlane;
 ec2.IngressDefaultClusterToNodeSG();
 ec2.IngressInterNodeGroupSG();
 ec2.IngressNodeToDefaultClusterSG();
@@ -48,7 +56,6 @@ ec2.PublicRouteTable();
 
 ec2.VPCGatewayAttachment();
 ec2.PublicSubnetRoute();
-ec2.PublicSubnetIPv6DefaultRoute();
 ec2.RouteTableAssociationPrivateAPSOUTHEAST1A();
 ec2.RouteTableAssociationPrivateAPSOUTHEAST1B();
 ec2.RouteTableAssociationPrivateAPSOUTHEAST1C();
@@ -56,15 +63,16 @@ ec2.RouteTableAssociationPublicAPSOUTHEAST1A();
 ec2.RouteTableAssociationPublicAPSOUTHEAST1B();
 ec2.RouteTableAssociationPublicAPSOUTHEAST1C();
 
-ec2.LaunchTemplate();
+eks.launchTemplate = ec2.LaunchTemplate();
 iam.PolicyAutoScaling();
 iam.PolicyEBS();
 iam.PolicyEFS();
 iam.PolicyEFSEC2();
 iam.PolicyFSX();
 iam.PolicyServiceLinkRole();
-iam.NodeInstanceRole();
+eks.nodeInstanceRole = iam.NodeInstanceRole();
 eks.ManagedNodeGroup();
+eks.UpdateKubeconfig();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
@@ -75,12 +83,10 @@ export const FeatureNATMode = 'Single';
 export const SecurityGroup = ControlPlaneSecurityGroup.arn;
 export const ServiceRoleARN = ServiceRole.arn;
 export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup.arn;
-export const SubnetsPrivate = [
+export const Subnets = [
   SubnetPrivateAPSOUTHEAST1A.arn,
   SubnetPrivateAPSOUTHEAST1B.arn,
   SubnetPrivateAPSOUTHEAST1C.arn,
-];
-export const SubnetPublic = [
   SubnetPublicAPSOUTHEAST1A.arn,
   SubnetPublicAPSOUTHEAST1B.arn,
   SubnetPublicAPSOUTHEAST1C.arn,

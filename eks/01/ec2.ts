@@ -623,7 +623,7 @@ class EC2 extends Parameters {
     this.vpc = new aws.ec2.Vpc(
       'VPC',
       {
-        cidrBlock: '10.1.0.0/16',
+        cidrBlock: '10.10.0.0/16',
         assignGeneratedIpv6CidrBlock: true,
         enableDnsHostnames: true,
         enableDnsSupport: true,
