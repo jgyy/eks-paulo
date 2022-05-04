@@ -1,13 +1,20 @@
 import * as aws from '@pulumi/aws';
 import Parameters from './param';
+import Resources from './resource';
 
 class IAM extends Parameters {
+  constructor(resource: Resources) {
+    super();
+    this.resource = resource;
+  }
+
   NodeInstanceProfile = () => {
     this.CheckCreated('nodeInstanceRole');
-    return new aws.iam.InstanceProfile(
+    this.resource.nodeInstanceProfile = new aws.iam.InstanceProfile(
       'NodeInstanceProfile',
-      { role: this.nodeInstanceRole },
+      { role: this.resource.nodeInstanceRole },
     );
+    return this.resource.nodeInstanceProfile;
   };
 
   NodeInstanceRole = () => {
@@ -19,7 +26,7 @@ class IAM extends Parameters {
       'policyFSX',
       'policyServiceLinkRole',
     );
-    this.nodeInstanceRole = new aws.iam.Role(
+    this.resource.nodeInstanceRole = new aws.iam.Role(
       'NodeInstanceRole',
       {
         assumeRolePolicy: JSON.stringify({
@@ -35,22 +42,22 @@ class IAM extends Parameters {
           this.AmazonEKSWorkerNodePolicy(),
           this.AmazonEKSCNIPolicy(),
           this.AmazonSSMManagedInstanceCore(),
-          this.policyAutoScaling.arn,
-          this.policyEBS.arn,
-          this.policyEFS.arn,
-          this.policyEFSEC2.arn,
-          this.policyFSX.arn,
-          this.policyServiceLinkRole.arn,
+          this.resource.policyAutoScaling.arn,
+          this.resource.policyEBS.arn,
+          this.resource.policyEFS.arn,
+          this.resource.policyEFSEC2.arn,
+          this.resource.policyFSX.arn,
+          this.resource.policyServiceLinkRole.arn,
         ],
         path: '/',
         tags: { Name: `${this.StackName}/NodeInstanceRole` },
       },
     );
-    return this.nodeInstanceRole;
+    return this.resource.nodeInstanceRole;
   };
 
   PolicyAutoScaling = () => {
-    this.policyAutoScaling = new aws.iam.Policy(
+    this.resource.policyAutoScaling = new aws.iam.Policy(
       'PolicyAutoScaling',
       {
         policy: JSON.stringify({
@@ -73,11 +80,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyAutoScaling`,
       },
     );
-    return this.policyAutoScaling;
+    return this.resource.policyAutoScaling;
   };
 
   PolicyCloudWatchMetrics = () => {
-    this.policyCloudWatchMetrics = new aws.iam.Policy(
+    this.resource.policyCloudWatchMetrics = new aws.iam.Policy(
       'PolicyCloudWatchMetrics',
       {
         policy: JSON.stringify({
@@ -91,11 +98,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyCloudWatchMetrics`,
       },
     );
-    return this.policyCloudWatchMetrics;
+    return this.resource.policyCloudWatchMetrics;
   };
 
   PolicyEBS = () => {
-    this.policyEBS = new aws.iam.Policy(
+    this.resource.policyEBS = new aws.iam.Policy(
       'PolicyEBS',
       {
         policy: JSON.stringify({
@@ -210,11 +217,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyEBS`,
       },
     );
-    return this.policyEBS;
+    return this.resource.policyEBS;
   };
 
   PolicyEFS = () => {
-    this.policyEFS = new aws.iam.Policy(
+    this.resource.policyEFS = new aws.iam.Policy(
       'PolicyEFS',
       {
         policy: JSON.stringify({
@@ -230,11 +237,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyEFS`,
       },
     );
-    return this.policyEFS;
+    return this.resource.policyEFS;
   };
 
   PolicyEFSEC2 = () => {
-    this.policyEFSEC2 = new aws.iam.Policy(
+    this.resource.policyEFSEC2 = new aws.iam.Policy(
       'PolicyEFSEC2',
       {
         policy: JSON.stringify({
@@ -257,11 +264,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyEFSEC2`,
       },
     );
-    return this.policyEFSEC2;
+    return this.resource.policyEFSEC2;
   };
 
   PolicyELBPermissions = () => {
-    this.policyELBPermissions = new aws.iam.Policy(
+    this.resource.policyELBPermissions = new aws.iam.Policy(
       'PolicyELBPermissions',
       {
         policy: JSON.stringify({
@@ -279,11 +286,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyELBPermissions`,
       },
     );
-    return this.policyELBPermissions;
+    return this.resource.policyELBPermissions;
   };
 
   PolicyFSX = () => {
-    this.policyFSX = new aws.iam.Policy(
+    this.resource.policyFSX = new aws.iam.Policy(
       'PolicyFSX',
       {
         policy: JSON.stringify({
@@ -297,11 +304,11 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyFSX`,
       },
     );
-    return this.policyFSX;
+    return this.resource.policyFSX;
   };
 
   PolicyServiceLinkRole = () => {
-    this.policyServiceLinkRole = new aws.iam.Policy(
+    this.resource.policyServiceLinkRole = new aws.iam.Policy(
       'PolicyServiceLinkRole',
       {
         policy: JSON.stringify({
@@ -319,12 +326,12 @@ class IAM extends Parameters {
         name: `${this.StackName}-PolicyServiceLinkRole`,
       },
     );
-    return this.policyServiceLinkRole;
+    return this.resource.policyServiceLinkRole;
   };
 
   ServiceRole = () => {
     this.CheckCreated('policyCloudWatchMetrics', 'policyELBPermissions');
-    return new aws.iam.Role(
+    this.resource.serviceRole = new aws.iam.Role(
       'ServiceRole',
       {
         assumeRolePolicy: JSON.stringify({
@@ -338,12 +345,13 @@ class IAM extends Parameters {
         managedPolicyArns: [
           this.AmazonEKSClusterPolicy(),
           this.AmazonEKSVPCResourceController(),
-          this.policyCloudWatchMetrics.arn,
-          this.policyELBPermissions.arn,
+          this.resource.policyCloudWatchMetrics.arn,
+          this.resource.policyELBPermissions.arn,
         ],
         tags: { Name: `${this.StackName}/ServiceRole` },
       },
     );
+    return this.resource.serviceRole;
   };
 }
 
