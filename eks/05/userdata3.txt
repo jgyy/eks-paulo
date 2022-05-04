@@ -1,0 +1,10 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=a08ee215d4f1c48bcb3888f5cc082039f21b8dac8430d375a808fbe8eaf6
+
+--a08ee215d4f1c48bcb3888f5cc082039f21b8dac8430d375a808fbe8eaf6
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+for n in $(cat /sys/devices/system/cpu/cpu*/topology/thread_siblings_list | cut -s -d, -f2- | tr ',' '
+' | sort -un); do echo 0 > /sys/devices/system/cpu/cpu${n}/online; done
+--a08ee215d4f1c48bcb3888f5cc082039f21b8dac8430d375a808fbe8eaf6--

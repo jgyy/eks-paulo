@@ -22,66 +22,68 @@ Resources:
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
-              Iops: 3000
-              Throughput: 125
-              VolumeSize: 80
-              VolumeType: gp3
+              Encrypted: false
+              VolumeSize: 100
+              VolumeType: gp2
+        ImageId: ami-0cc8dc7a69cd8b547
         MetadataOptions:
           HttpPutResponseHopLimit: 2
-          HttpTokens: optional
+          HttpTokens: required
         SecurityGroupIds:
-          - !ImportValue 'eksctl-cluster-4-cluster::ClusterSecurityGroupId'
+          - !ImportValue 'eksctl-cluster-5-cluster::ClusterSecurityGroupId'
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: cluster-4-ng-1-Node
+                Value: cluster-5-ng1-public-Node
               - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-1
+                Value: ng1-public
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
           - ResourceType: volume
             Tags:
               - Key: Name
-                Value: cluster-4-ng-1-Node
+                Value: cluster-5-ng1-public-Node
               - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-1
+                Value: ng1-public
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
           - ResourceType: network-interface
             Tags:
               - Key: Name
-                Value: cluster-4-ng-1-Node
+                Value: cluster-5-ng1-public-Node
               - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-1
+                Value: ng1-public
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
+        UserData: >-
+          TUlNRS1WZXJzaW9uOiAxLjANCkNvbnRlbnQtVHlwZTogbXVsdGlwYXJ0L21peGVkOyBib3VuZGFyeT1hYzcxOWI1ZTMyOTYwMTI5ODk1MGFhMDkxOGRkZGY2NGNkNTU1ZWM4NGE1YTY3ZGI2Yjg0OGI5NDZkNDMNCg0KLS1hYzcxOWI1ZTMyOTYwMTI5ODk1MGFhMDkxOGRkZGY2NGNkNTU1ZWM4NGE1YTY3ZGI2Yjg0OGI5NDZkNDMNCkNvbnRlbnQtVHlwZTogdGV4dC94LXNoZWxsc2NyaXB0DQpDb250ZW50LVR5cGU6IGNoYXJzZXQ9InVzLWFzY2lpIg0KDQojIS9iaW4vYmFzaAoNCi0tYWM3MTliNWUzMjk2MDEyOTg5NTBhYTA5MThkZGRmNjRjZDU1NWVjODRhNWE2N2RiNmI4NDhiOTQ2ZDQzLS0NCg==
       LaunchTemplateName: !Sub '${AWS::StackName}'
   ManagedNodeGroup:
     Type: 'AWS::EKS::Nodegroup'
     Properties:
-      AmiType: AL2_x86_64
-      ClusterName: cluster-4
+      ClusterName: cluster-5
       InstanceTypes:
         - m5.xlarge
       Labels:
-        alpha.eksctl.io/cluster-name: cluster-4
-        alpha.eksctl.io/nodegroup-name: ng-1
+        alpha.eksctl.io/cluster-name: cluster-5
+        alpha.eksctl.io/nodegroup-name: ng1-public
+        nodegroup-type: frontend-workloads
       LaunchTemplate:
         Id: !Ref LaunchTemplate
       NodeRole: !GetAtt 
         - NodeInstanceRole
         - Arn
-      NodegroupName: ng-1
+      NodegroupName: ng1-public
       ScalingConfig:
         DesiredSize: 2
-        MaxSize: 2
+        MaxSize: 8
         MinSize: 2
       Subnets: !Split 
         - ','
-        - !ImportValue 'eksctl-cluster-4-cluster::SubnetsPrivate'
+        - !ImportValue 'eksctl-cluster-5-cluster::SubnetsPublic'
       Tags:
-        alpha.eksctl.io/nodegroup-name: ng-1
+        alpha.eksctl.io/nodegroup-name: ng1-public
         alpha.eksctl.io/nodegroup-type: managed
   NodeInstanceRole:
     Type: 'AWS::IAM::Role'
@@ -108,3 +110,23 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}/NodeInstanceRole'
+  PolicyAutoScaling:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - 'autoscaling:DescribeAutoScalingGroups'
+              - 'autoscaling:DescribeAutoScalingInstances'
+              - 'autoscaling:DescribeLaunchConfigurations'
+              - 'autoscaling:DescribeTags'
+              - 'autoscaling:SetDesiredCapacity'
+              - 'autoscaling:TerminateInstanceInAutoScalingGroup'
+              - 'ec2:DescribeInstanceTypes'
+              - 'ec2:DescribeLaunchTemplateVersions'
+            Effect: Allow
+            Resource: '*'
+        Version: 2012-10-17
+      PolicyName: !Sub '${AWS::StackName}-PolicyAutoScaling'
+      Roles:
+        - !Ref NodeInstanceRole

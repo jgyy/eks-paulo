@@ -14,7 +14,7 @@ managedNodeGroups:
     maxSize: 8
     volumeSize: 100
     volumeType: gp2
-    ami: ami-0cc8dc7a69cd8b547
+    # ami: ami-0cc8dc7a69cd8b547
     amiFamily: AmazonLinux2
     # forces the use of IMDSv2 tokens
     disableIMDSv1: true
@@ -23,6 +23,7 @@ managedNodeGroups:
     iam:
       withAddonPolicies:
         autoScaler: true
+    # overrideBootstrapCommand: "#!/bin/bash"
 
   - name: ng2-private-a
     instanceType: m5.large
@@ -42,19 +43,19 @@ managedNodeGroups:
     desiredCapacity: 4
     labels:
       nodegroup-type: very-special-science-workloads
-    classicLoadBalancerNames:
-      - ng3-classic-load-balancer
-    asgMetricsCollection:
-      - granularity: 1Minute
-        metrics:
-          - GroupMinSize
-          - GroupMaxSize
-          - GroupDesiredCapacity
-          - GroupInServiceInstances
-          - GroupPendingInstances
-          - GroupStandbyInstances
-          - GroupTerminatingInstances
-          - GroupTotalInstances
+    # classicLoadBalancerNames:
+    #   - ng3-classic-load-balancer
+    # asgMetricsCollection:
+    #   - granularity: 1Minute
+    #     metrics:
+    #       - GroupMinSize
+    #       - GroupMaxSize
+    #       - GroupDesiredCapacity
+    #       - GroupInServiceInstances
+    #       - GroupPendingInstances
+    #       - GroupStandbyInstances
+    #       - GroupTerminatingInstances
+    #       - GroupTotalInstances
     taints:
       - key: special
         value: "true"

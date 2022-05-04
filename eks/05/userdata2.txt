@@ -1,0 +1,14 @@
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary=a1a58a78274a97b9929b7dc1f799119326c3e2d5b40bcf09e551ba07bbae
+
+--a1a58a78274a97b9929b7dc1f799119326c3e2d5b40bcf09e551ba07bbae
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+sed '2i "insecure-registries": ["172.20.0.0/16","10.100.0.0/16"],'  /etc/docker/daemon.json
+--a1a58a78274a97b9929b7dc1f799119326c3e2d5b40bcf09e551ba07bbae
+Content-Type: text/x-shellscript
+Content-Type: charset="us-ascii"
+
+systemctl restart docker
+--a1a58a78274a97b9929b7dc1f799119326c3e2d5b40bcf09e551ba07bbae--
