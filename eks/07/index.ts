@@ -1,14 +1,14 @@
-import EC2 from './eks/08/ec2';
-import EKS from './eks/08/eks';
-import IAM from './eks/08/iam';
-import Launch from './eks/08/launch';
-import Resources from './eks/08/resource';
+import EC2 from './eks/07/ec2';
+import EKS from './eks/07/eks';
+import IAM from './eks/07/iam';
+import LAUNCH from './eks/07/launch';
+import Resources from './eks/07/resource';
 
 const resource = new Resources();
 const ec2 = new EC2(resource);
 const eks = new EKS(resource);
 const iam = new IAM(resource);
-const launch = new Launch(resource);
+const launch = new LAUNCH(resource);
 
 const VPC = ec2.VPC();
 const SubnetPrivateAPSOUTHEAST1A = ec2.SubnetPrivateAPSOUTHEAST1A();
@@ -58,9 +58,23 @@ iam.PolicyEFSEC2();
 iam.PolicyFSX();
 iam.PolicyServiceLinkRole();
 iam.NodeInstanceRole();
+ec2.SSH();
+ec2.DevKey();
 
 launch.LaunchTemplateOne();
+launch.LaunchTemplateTwo();
+launch.LaunchTemplateThree();
+launch.LaunchTemplateFour();
+launch.LaunchTemplateFive();
+launch.LaunchTemplateSix();
+launch.LaunchTemplateSeven();
 eks.ManagedNodeGroupOne();
+eks.ManagedNodeGroupTwo();
+eks.ManagedNodeGroupThree();
+eks.ManagedNodeGroupFour();
+eks.ManagedNodeGroupFive();
+eks.ManagedNodeGroupSix();
+eks.ManagedNodeGroupSeven();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;

@@ -1,31 +1,97 @@
 import * as aws from '@pulumi/aws';
+import * as awsn from '@pulumi/aws-native';
+import * as fs from 'fs';
 import Parameters from './param';
+import Resources from './resource';
 
 class EC2 extends Parameters {
+  constructor(resource: Resources) {
+    super();
+    this.resource = resource;
+  }
+
   ClusterSharedNodeSecurityGroup = () => {
     this.CheckCreated('vpc');
-    this.clusterSharedNodeSecurityGroup = new aws.ec2.SecurityGroup(
+    this.resource.clusterSharedNodeSecurityGroup = new aws.ec2.SecurityGroup(
       'ClusterSharedNodeSecurityGroup',
       {
         description: 'Communication between all nodes in the cluster',
         tags: { Name: `${this.StackName}/ClusterSharedNodeSecurityGroup` },
-        vpcId: this.vpc.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.clusterSharedNodeSecurityGroup;
+    return this.resource.clusterSharedNodeSecurityGroup;
   };
 
   ControlPlaneSecurityGroup = () => {
     this.CheckCreated('vpc');
-    this.controlPlaneSecurityGroup = new aws.ec2.SecurityGroup(
+    this.resource.controlPlaneSecurityGroup = new aws.ec2.SecurityGroup(
       'ControlPlaneSecurityGroup',
       {
         description: 'Communication between the control plane and worker nodegroups',
         tags: { Name: `${this.StackName}/ControlPlaneSecurityGroup` },
-        vpcId: this.vpc.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.controlPlaneSecurityGroup;
+    return this.resource.controlPlaneSecurityGroup;
+  };
+
+  DevKey = () => {
+    this.resource.devKey = new aws.ec2.KeyPair(
+      'ec2_dev_key',
+      { publicKey: fs.readFileSync('/Users/jgyy/.ssh/id_rsa.pub', 'utf8') },
+    );
+    return this.resource.devKey;
+  };
+
+  EgressInterCluster = () => {
+    this.CheckCreated('controlPlaneSecurityGroup', 'sg');
+    return new aws.ec2.SecurityGroupRule(
+      'EgressInterCluster',
+      {
+        type: 'egress',
+        description: 'Allow control plane to communicate with worker nodes in group ng'
+          + ' (kubelet and workload TCP ports)',
+        fromPort: 1025,
+        securityGroupId: this.resource.controlPlaneSecurityGroup.id,
+        protocol: 'tcp',
+        sourceSecurityGroupId: this.resource.sg.id,
+        toPort: 65535,
+      },
+    );
+  };
+
+  EgressInterClusterAPI = () => {
+    this.CheckCreated('controlPlaneSecurityGroup', 'sg');
+    return new aws.ec2.SecurityGroupRule(
+      'EgressInterClusterAPI',
+      {
+        type: 'egress',
+        description: 'Allow control plane to communicate with worker nodes in group ng'
+          + ' (workloads using HTTPS port, commonly used with extension API servers)',
+        fromPort: 443,
+        securityGroupId: this.resource.controlPlaneSecurityGroup.id,
+        protocol: 'tcp',
+        sourceSecurityGroupId: this.resource.sg.id,
+        toPort: 443,
+      },
+    );
+  };
+
+  IngressInterClusterCP = () => {
+    this.CheckCreated('controlPlaneSecurityGroup', 'sg');
+    return new aws.ec2.SecurityGroupRule(
+      'IngressInterClusterCP',
+      {
+        type: 'ingress',
+        description: 'Allow control plane to receive API requests from worker nodes in group ng',
+        fromPort: 443,
+        securityGroupId: this.resource.controlPlaneSecurityGroup.id,
+        protocol: '-1',
+        sourceSecurityGroupId: this.resource.sg.id,
+        toPort: 443,
+      },
+    );
   };
 
   IngressDefaultClusterToNodeSG = () => {
@@ -37,9 +103,9 @@ class EC2 extends Parameters {
         description: 'Allow managed and unmanaged nodes to communicate with each other (all'
           + ' ports)',
         fromPort: 0,
-        securityGroupId: this.clusterSharedNodeSecurityGroup.id,
+        securityGroupId: this.resource.clusterSharedNodeSecurityGroup.id,
         protocol: '-1',
-        sourceSecurityGroupId: this.controlPlane.vpcConfig.clusterSecurityGroupId,
+        sourceSecurityGroupId: this.resource.controlPlane.vpcConfig.clusterSecurityGroupId,
         toPort: 65535,
       },
     );
@@ -53,9 +119,9 @@ class EC2 extends Parameters {
         type: 'ingress',
         description: 'Allow nodes to communicate with each other (all ports)',
         fromPort: 0,
-        securityGroupId: this.clusterSharedNodeSecurityGroup.id,
+        securityGroupId: this.resource.clusterSharedNodeSecurityGroup.id,
         protocol: '-1',
-        sourceSecurityGroupId: this.clusterSharedNodeSecurityGroup.id,
+        sourceSecurityGroupId: this.resource.clusterSharedNodeSecurityGroup.id,
         toPort: 65535,
       },
     );
@@ -69,147 +135,184 @@ class EC2 extends Parameters {
         type: 'ingress',
         description: 'Allow unmanaged nodes to communicate with control plane (all ports)',
         fromPort: 0,
-        securityGroupId: this.controlPlane.vpcConfig.clusterSecurityGroupId,
+        securityGroupId: this.resource.controlPlane.vpcConfig.clusterSecurityGroupId,
         protocol: '-1',
-        sourceSecurityGroupId: this.clusterSharedNodeSecurityGroup.id,
+        sourceSecurityGroupId: this.resource.clusterSharedNodeSecurityGroup.id,
         toPort: 65535,
       },
     );
   };
 
   InternetGateway = () => {
-    this.internetGateway = new aws.ec2.InternetGateway(
+    this.resource.internetGateway = new aws.ec2.InternetGateway(
       'InternetGateway',
       {
         tags: { Name: `${this.StackName}/InternetGateway` },
       },
     );
-    return this.internetGateway;
+    return this.resource.internetGateway;
   };
 
-  NATGateway = () => {
-    this.CheckCreated('natip', 'subnetPublicAPSOUTHEAST1A');
-    this.natGateway = new aws.ec2.NatGateway(
-      'NATGateway',
+  NATGatewayAPSOUTHEAST1A = () => {
+    this.CheckCreated('natIPAPSOUTHEAST1A', 'subnetPublicAPSOUTHEAST1A');
+    this.resource.natGatewayAPSOUTHEAST1A = new aws.ec2.NatGateway(
+      'NATGatewayAPSOUTHEAST1A',
       {
-        allocationId: this.natip.id,
-        subnetId: this.subnetPublicAPSOUTHEAST1A.id,
-        tags: { Name: `${this.StackName}/NATGateway` },
+        allocationId: this.resource.natIPAPSOUTHEAST1A.id,
+        subnetId: this.resource.subnetPublicAPSOUTHEAST1A.id,
+        tags: { Name: `${this.StackName}/NATGatewayAPSOUTHEAST1A` },
       },
     );
-    return this.natGateway;
+    return this.resource.natGatewayAPSOUTHEAST1A;
   };
 
-  NATIP = () => {
-    this.natip = new aws.ec2.Eip(
-      'NATIP',
+  NATGatewayAPSOUTHEAST1B = () => {
+    this.CheckCreated('natIPAPSOUTHEAST1B', 'subnetPublicAPSOUTHEAST1B');
+    this.resource.natGatewayAPSOUTHEAST1B = new aws.ec2.NatGateway(
+      'NATGatewayAPSOUTHEAST1B',
+      {
+        allocationId: this.resource.natIPAPSOUTHEAST1B.id,
+        subnetId: this.resource.subnetPublicAPSOUTHEAST1B.id,
+        tags: { Name: `${this.StackName}/NATGatewayAPSOUTHEAST1B` },
+      },
+    );
+    return this.resource.natGatewayAPSOUTHEAST1B;
+  };
+
+  NATGatewayAPSOUTHEAST1C = () => {
+    this.CheckCreated('natIPAPSOUTHEAST1C', 'subnetPublicAPSOUTHEAST1C');
+    this.resource.natGatewayAPSOUTHEAST1C = new aws.ec2.NatGateway(
+      'NATGatewayAPSOUTHEAST1C',
+      {
+        allocationId: this.resource.natIPAPSOUTHEAST1C.id,
+        subnetId: this.resource.subnetPublicAPSOUTHEAST1C.id,
+        tags: { Name: `${this.StackName}/NATGatewayAPSOUTHEAST1C` },
+      },
+    );
+    return this.resource.natGatewayAPSOUTHEAST1C;
+  };
+
+  NATIPAPSOUTHEAST1A = () => {
+    this.resource.natIPAPSOUTHEAST1A = new aws.ec2.Eip(
+      'NATIPAPSOUTHEAST1A',
       {
         vpc: true,
-        tags: { Name: `${this.StackName}/NATIP` },
+        tags: { Name: `${this.StackName}/NATIPAPSOUTHEAST1A` },
       },
     );
-    return this.natip;
+    return this.resource.natIPAPSOUTHEAST1A;
+  };
+
+  NATIPAPSOUTHEAST1B = () => {
+    this.resource.natIPAPSOUTHEAST1B = new aws.ec2.Eip(
+      'NATIPAPSOUTHEAST1B',
+      {
+        vpc: true,
+        tags: { Name: `${this.StackName}/NATIPAPSOUTHEAST1B` },
+      },
+    );
+    return this.resource.natIPAPSOUTHEAST1B;
+  };
+
+  NATIPAPSOUTHEAST1C = () => {
+    this.resource.natIPAPSOUTHEAST1C = new aws.ec2.Eip(
+      'NATIPAPSOUTHEAST1C',
+      {
+        vpc: true,
+        tags: { Name: `${this.StackName}/NATIPAPSOUTHEAST1C` },
+      },
+    );
+    return this.resource.natIPAPSOUTHEAST1C;
   };
 
   NATPrivateSubnetRouteAPSOUTHEAST1A = () => {
-    this.CheckCreated('natGateway', 'privateRouteTableAPSOUTHEAST1A');
+    this.CheckCreated(
+      'natGatewayAPSOUTHEAST1A',
+      'privateRouteTableAPSOUTHEAST1A',
+    );
     return new aws.ec2.Route(
       'NATPrivateSubnetRouteAPSOUTHEAST1A',
       {
         destinationCidrBlock: '0.0.0.0/0',
-        natGatewayId: this.natGateway.id,
-        routeTableId: this.privateRouteTableAPSOUTHEAST1A.id,
+        natGatewayId: this.resource.natGatewayAPSOUTHEAST1A.id,
+        routeTableId: this.resource.privateRouteTableAPSOUTHEAST1A.id,
       },
     );
   };
 
   NATPrivateSubnetRouteAPSOUTHEAST1B = () => {
-    this.CheckCreated('natGateway', 'privateRouteTableAPSOUTHEAST1B');
+    this.CheckCreated(
+      'natGatewayAPSOUTHEAST1B',
+      'privateRouteTableAPSOUTHEAST1B',
+    );
     return new aws.ec2.Route(
       'NATPrivateSubnetRouteAPSOUTHEAST1B',
       {
         destinationCidrBlock: '0.0.0.0/0',
-        natGatewayId: this.natGateway.id,
-        routeTableId: this.privateRouteTableAPSOUTHEAST1B.id,
+        natGatewayId: this.resource.natGatewayAPSOUTHEAST1B.id,
+        routeTableId: this.resource.privateRouteTableAPSOUTHEAST1B.id,
       },
     );
   };
 
   NATPrivateSubnetRouteAPSOUTHEAST1C = () => {
-    this.CheckCreated('natGateway', 'privateRouteTableAPSOUTHEAST1C');
+    this.CheckCreated('natGatewayAPSOUTHEAST1C', 'privateRouteTableAPSOUTHEAST1C');
     return new aws.ec2.Route(
       'NATPrivateSubnetRouteAPSOUTHEAST1C',
       {
         destinationCidrBlock: '0.0.0.0/0',
-        natGatewayId: this.natGateway.id,
-        routeTableId: this.privateRouteTableAPSOUTHEAST1C.id,
+        natGatewayId: this.resource.natGatewayAPSOUTHEAST1C.id,
+        routeTableId: this.resource.privateRouteTableAPSOUTHEAST1C.id,
       },
     );
   };
 
   PublicRouteTable = () => {
     this.CheckCreated('vpc');
-    this.publicRouteTable = new aws.ec2.RouteTable(
+    this.resource.publicRouteTable = new aws.ec2.RouteTable(
       'PublicRouteTable',
       {
         tags: { Name: `${this.StackName}/PublicRouteTable` },
-        vpcId: this.vpc.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.publicRouteTable;
+    return this.resource.publicRouteTable;
   };
 
   PrivateRouteTableAPSOUTHEAST1A = () => {
     this.CheckCreated('vpc');
-    this.privateRouteTableAPSOUTHEAST1A = new aws.ec2.RouteTable(
+    this.resource.privateRouteTableAPSOUTHEAST1A = new aws.ec2.RouteTable(
       'PrivateRouteTableAPSOUTHEAST1A',
       {
         tags: { Name: `${this.StackName}/PrivateRouteTableAPSOUTHEAST1A` },
-        vpcId: this.vpc.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.privateRouteTableAPSOUTHEAST1A;
+    return this.resource.privateRouteTableAPSOUTHEAST1A;
   };
 
   PrivateRouteTableAPSOUTHEAST1B = () => {
     this.CheckCreated('vpc');
-    this.privateRouteTableAPSOUTHEAST1B = new aws.ec2.RouteTable(
+    this.resource.privateRouteTableAPSOUTHEAST1B = new aws.ec2.RouteTable(
       'PrivateRouteTableAPSOUTHEAST1B',
       {
         tags: { Name: `${this.StackName}/PrivateRouteTableAPSOUTHEAST1B` },
-        vpcId: this.vpc.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.privateRouteTableAPSOUTHEAST1B;
+    return this.resource.privateRouteTableAPSOUTHEAST1B;
   };
 
   PrivateRouteTableAPSOUTHEAST1C = () => {
     this.CheckCreated('vpc');
-    this.privateRouteTableAPSOUTHEAST1C = new aws.ec2.RouteTable(
+    this.resource.privateRouteTableAPSOUTHEAST1C = new aws.ec2.RouteTable(
       'PrivateRouteTableAPSOUTHEAST1C',
       {
         tags: { Name: `${this.StackName}/PrivateRouteTableAPSOUTHEAST1C` },
-        vpcId: this.vpc.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.privateRouteTableAPSOUTHEAST1C;
-  };
-
-  PublicSubnetIPv6DefaultRoute = () => {
-    this.CheckCreated(
-      'internetGateway',
-      'publicRouteTable',
-      'vpcGatewayAttachment',
-    );
-    return new aws.ec2.Route(
-      'PublicSubnetIPv6DefaultRoute',
-      {
-        destinationIpv6CidrBlock: '::/0',
-        gatewayId: this.internetGateway.id,
-        routeTableId: this.publicRouteTable.id,
-      },
-      { dependsOn: [this.vpcGatewayAttachment] },
-    );
+    return this.resource.privateRouteTableAPSOUTHEAST1C;
   };
 
   PublicSubnetRoute = () => {
@@ -222,10 +325,10 @@ class EC2 extends Parameters {
       'PublicSubnetRoute',
       {
         destinationCidrBlock: '0.0.0.0/0',
-        gatewayId: this.internetGateway.id,
-        routeTableId: this.publicRouteTable.id,
+        gatewayId: this.resource.internetGateway.id,
+        routeTableId: this.resource.publicRouteTable.id,
       },
-      { dependsOn: [this.vpcGatewayAttachment] },
+      { dependsOn: [this.resource.vpcGatewayAttachment] },
     );
   };
 
@@ -237,8 +340,8 @@ class EC2 extends Parameters {
     return new aws.ec2.RouteTableAssociation(
       'RouteTableAssociationPrivateAPSOUTHEAST1A',
       {
-        routeTableId: this.privateRouteTableAPSOUTHEAST1A.id,
-        subnetId: this.subnetPrivateAPSOUTHEAST1A.id,
+        routeTableId: this.resource.privateRouteTableAPSOUTHEAST1A.id,
+        subnetId: this.resource.subnetPrivateAPSOUTHEAST1A.id,
       },
     );
   };
@@ -251,8 +354,8 @@ class EC2 extends Parameters {
     return new aws.ec2.RouteTableAssociation(
       'RouteTableAssociationPrivateAPSOUTHEAST1B',
       {
-        routeTableId: this.privateRouteTableAPSOUTHEAST1B.id,
-        subnetId: this.subnetPrivateAPSOUTHEAST1B.id,
+        routeTableId: this.resource.privateRouteTableAPSOUTHEAST1B.id,
+        subnetId: this.resource.subnetPrivateAPSOUTHEAST1B.id,
       },
     );
   };
@@ -265,8 +368,8 @@ class EC2 extends Parameters {
     return new aws.ec2.RouteTableAssociation(
       'RouteTableAssociationPrivateAPSOUTHEAST1C',
       {
-        routeTableId: this.privateRouteTableAPSOUTHEAST1C.id,
-        subnetId: this.subnetPrivateAPSOUTHEAST1C.id,
+        routeTableId: this.resource.privateRouteTableAPSOUTHEAST1C.id,
+        subnetId: this.resource.subnetPrivateAPSOUTHEAST1C.id,
       },
     );
   };
@@ -276,8 +379,8 @@ class EC2 extends Parameters {
     return new aws.ec2.RouteTableAssociation(
       'RouteTableAssociationPublicAPSOUTHEAST1A',
       {
-        routeTableId: this.publicRouteTable.id,
-        subnetId: this.subnetPublicAPSOUTHEAST1A.id,
+        routeTableId: this.resource.publicRouteTable.id,
+        subnetId: this.resource.subnetPublicAPSOUTHEAST1A.id,
       },
     );
   };
@@ -287,8 +390,8 @@ class EC2 extends Parameters {
     return new aws.ec2.RouteTableAssociation(
       'RouteTableAssociationPublicAPSOUTHEAST1B',
       {
-        routeTableId: this.publicRouteTable.id,
-        subnetId: this.subnetPublicAPSOUTHEAST1B.id,
+        routeTableId: this.resource.publicRouteTable.id,
+        subnetId: this.resource.subnetPublicAPSOUTHEAST1B.id,
       },
     );
   };
@@ -298,153 +401,248 @@ class EC2 extends Parameters {
     return new aws.ec2.RouteTableAssociation(
       'RouteTableAssociationPublicAPSOUTHEAST1C',
       {
-        routeTableId: this.publicRouteTable.id,
-        subnetId: this.subnetPublicAPSOUTHEAST1C.id,
+        routeTableId: this.resource.publicRouteTable.id,
+        subnetId: this.resource.subnetPublicAPSOUTHEAST1C.id,
       },
     );
+  };
+
+  SG = () => {
+    this.CheckCreated('vpc');
+    this.resource.sg = new aws.ec2.SecurityGroup(
+      'SG',
+      {
+        description: 'Communication between the control plane and worker nodes in group ng',
+        ingress: [
+          {
+            description: '[IngressInterCluster] Allow worker nodes in group ng to'
+              + ' communicate with control plane (kubelet and workload TCP ports)',
+            fromPort: 1025,
+            protocol: 'tcp',
+            securityGroups: [this.resource.controlPlaneSecurityGroup.id],
+            toPort: 65535,
+          },
+          {
+            description: '[IngressInterClusterAPI] Allow worker nodes in group ng to'
+              + ' communicate with control plane (workloads using HTTPS port, commonly'
+              + ' used with extension API servers)',
+            fromPort: 443,
+            protocol: 'tcp',
+            securityGroups: [this.resource.controlPlaneSecurityGroup.id],
+            toPort: 443,
+          },
+        ],
+        tags: {
+          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
+          Name: `${this.StackName}/SG`,
+        },
+        vpcId: this.resource.vpc.id,
+      },
+    );
+    return this.resource.sg;
+  };
+
+  SSH = () => {
+    this.CheckCreated('vpc');
+    this.resource.ssh = new aws.ec2.SecurityGroup(
+      'SSH',
+      {
+        description: 'Allow SSH access',
+        name: `${this.StackName}-remoteAccess`,
+        ingress: [
+          {
+            cidrBlocks: ['0.0.0.0/0'],
+            description: 'Allow SSH access to managed worker nodes in group ng',
+            fromPort: 22,
+            protocol: 'tcp',
+            toPort: 22,
+          },
+          {
+            ipv6CidrBlocks: ['::/0'],
+            description: 'Allow SSH access to managed worker nodes in group ng',
+            fromPort: 22,
+            protocol: 'tcp',
+            toPort: 22,
+          },
+        ],
+        tags: {
+          Name: `${this.StackName}/SSH`,
+        },
+        vpcId: this.resource.vpc.id,
+      },
+    );
+    return this.resource.sg;
   };
 
   SubnetPrivateAPSOUTHEAST1A = () => {
-    this.CheckCreated('vpc', 'cidr');
-    this.subnetPrivateAPSOUTHEAST1A = new aws.ec2.Subnet(
+    this.CheckCreated('vpc');
+    this.resource.subnetPrivateAPSOUTHEAST1A = new awsn.ec2.Subnet(
       'SubnetPrivateAPSOUTHEAST1A',
       {
         availabilityZone: this.AvailabilityZones()[0],
-        cidrBlock: this.cidr.outputs.IPV40,
-        ipv6CidrBlock: this.cidr.outputs.IPV60,
-        tags: {
-          'kubernetes.io/role/internal-elb': '1',
-          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
-          Name: `${this.StackName}/SubnetPrivateAPSOUTHEAST1A`,
-        },
-        vpcId: this.vpc.id,
+        cidrBlock: '192.168.0.0/19',
+        tags: [
+          {
+            key: 'kubernetes.io/role/internal-elb',
+            value: '1',
+          },
+          {
+            key: 'Name',
+            value: `${this.StackName}/SubnetPrivateAPSOUTHEAST1A`,
+          },
+        ],
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.subnetPrivateAPSOUTHEAST1A;
+    return this.resource.subnetPrivateAPSOUTHEAST1A;
   };
 
   SubnetPrivateAPSOUTHEAST1B = () => {
-    this.CheckCreated('vpc', 'cidr');
-    this.subnetPrivateAPSOUTHEAST1B = new aws.ec2.Subnet(
+    this.CheckCreated('vpc');
+    this.resource.subnetPrivateAPSOUTHEAST1B = new awsn.ec2.Subnet(
       'SubnetPrivateAPSOUTHEAST1B',
       {
         availabilityZone: this.AvailabilityZones()[1],
-        cidrBlock: this.cidr.outputs.IPV41,
-        ipv6CidrBlock: this.cidr.outputs.IPV61,
-        tags: {
-          'kubernetes.io/role/internal-elb': '1',
-          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
-          Name: `${this.StackName}/SubnetPrivateAPSOUTHEAST1B`,
-        },
-        vpcId: this.vpc.id,
+        cidrBlock: '192.168.32.0/19',
+        tags: [
+          {
+            key: 'kubernetes.io/role/internal-elb',
+            value: '1',
+          },
+          {
+            key: 'Name',
+            value: `${this.StackName}/SubnetPrivateAPSOUTHEAST1B`,
+          },
+        ],
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.subnetPrivateAPSOUTHEAST1B;
+    return this.resource.subnetPrivateAPSOUTHEAST1B;
   };
 
   SubnetPrivateAPSOUTHEAST1C = () => {
-    this.CheckCreated('vpc', 'cidr');
-    this.subnetPrivateAPSOUTHEAST1C = new aws.ec2.Subnet(
+    this.CheckCreated('vpc');
+    this.resource.subnetPrivateAPSOUTHEAST1C = new awsn.ec2.Subnet(
       'SubnetPrivateAPSOUTHEAST1C',
       {
         availabilityZone: this.AvailabilityZones()[2],
-        cidrBlock: this.cidr.outputs.IPV42,
-        ipv6CidrBlock: this.cidr.outputs.IPV62,
-        tags: {
-          'kubernetes.io/role/internal-elb': '1',
-          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
-          Name: `${this.StackName}/SubnetPrivateAPSOUTHEAST1C`,
-        },
-        vpcId: this.vpc.id,
+        cidrBlock: '192.168.64.0/19',
+        tags: [
+          {
+            key: 'kubernetes.io/role/internal-elb',
+            value: '1',
+          },
+          {
+            key: 'Name',
+            value: `${this.StackName}/SubnetPrivateAPSOUTHEAST1C`,
+          },
+        ],
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.subnetPrivateAPSOUTHEAST1C;
+    return this.resource.subnetPrivateAPSOUTHEAST1C;
   };
 
   SubnetPublicAPSOUTHEAST1A = () => {
-    this.CheckCreated('vpc', 'cidr');
-    this.subnetPublicAPSOUTHEAST1A = new aws.ec2.Subnet(
+    this.CheckCreated('vpc');
+    this.resource.subnetPublicAPSOUTHEAST1A = new awsn.ec2.Subnet(
       'SubnetPublicAPSOUTHEAST1A',
       {
         mapPublicIpOnLaunch: true,
         availabilityZone: this.AvailabilityZones()[0],
-        cidrBlock: this.cidr.outputs.IPV43,
-        ipv6CidrBlock: this.cidr.outputs.IPV63,
-        tags: {
-          'kubernetes.io/role/internal-elb': '1',
-          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
-          Name: `${this.StackName}/SubnetPublicAPSOUTHEAST1A`,
-        },
-        vpcId: this.vpc.id,
+        cidrBlock: '192.168.96.0/19',
+        tags: [
+          {
+            key: 'kubernetes.io/role/internal-elb',
+            value: '1',
+          },
+          {
+            key: 'Name',
+            value: `${this.StackName}/SubnetPublicAPSOUTHEAST1A`,
+          },
+        ],
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.subnetPublicAPSOUTHEAST1A;
+    return this.resource.subnetPublicAPSOUTHEAST1A;
   };
 
   SubnetPublicAPSOUTHEAST1B = () => {
-    this.CheckCreated('vpc', 'cidr');
-    this.subnetPublicAPSOUTHEAST1B = new aws.ec2.Subnet(
+    this.CheckCreated('vpc');
+    this.resource.subnetPublicAPSOUTHEAST1B = new awsn.ec2.Subnet(
       'SubnetPublicAPSOUTHEAST1B',
       {
         mapPublicIpOnLaunch: true,
         availabilityZone: this.AvailabilityZones()[1],
-        cidrBlock: this.cidr.outputs.IPV44,
-        ipv6CidrBlock: this.cidr.outputs.IPV64,
-        tags: {
-          'kubernetes.io/role/internal-elb': '1',
-          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
-          Name: `${this.StackName}/SubnetPublicAPSOUTHEAST1B`,
-        },
-        vpcId: this.vpc.id,
+        cidrBlock: '192.168.128.0/19',
+        tags: [
+          {
+            key: 'kubernetes.io/role/internal-elb',
+            value: '1',
+          },
+          {
+            key: 'Name',
+            value: `${this.StackName}/SubnetPublicAPSOUTHEAST1B`,
+          },
+        ],
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.subnetPublicAPSOUTHEAST1B;
+    return this.resource.subnetPublicAPSOUTHEAST1B;
   };
 
   SubnetPublicAPSOUTHEAST1C = () => {
-    this.CheckCreated('vpc', 'cidr');
-    this.subnetPublicAPSOUTHEAST1C = new aws.ec2.Subnet(
+    this.CheckCreated('vpc');
+    this.resource.subnetPublicAPSOUTHEAST1C = new awsn.ec2.Subnet(
       'SubnetPublicAPSOUTHEAST1C',
       {
         mapPublicIpOnLaunch: true,
         availabilityZone: this.AvailabilityZones()[2],
-        cidrBlock: this.cidr.outputs.IPV45,
-        ipv6CidrBlock: this.cidr.outputs.IPV65,
-        tags: {
-          'kubernetes.io/role/internal-elb': '1',
-          [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
-          Name: `${this.StackName}/SubnetPublicAPSOUTHEAST1C`,
-        },
-        vpcId: this.vpc.id,
+        cidrBlock: '192.168.160.0/19',
+        tags: [
+          {
+            key: 'kubernetes.io/role/internal-elb',
+            value: '1',
+          },
+          {
+            key: 'Name',
+            value: `${this.StackName}/SubnetPublicAPSOUTHEAST1C`,
+          },
+        ],
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.subnetPublicAPSOUTHEAST1C;
+    return this.resource.subnetPublicAPSOUTHEAST1C;
   };
 
   VPC = () => {
-    this.vpc = new aws.ec2.Vpc(
+    this.resource.vpc = new awsn.ec2.VPC(
       'VPC',
       {
-        cidrBlock: '10.1.0.0/16',
-        assignGeneratedIpv6CidrBlock: true,
+        cidrBlock: '192.168.0.0/16',
         enableDnsHostnames: true,
         enableDnsSupport: true,
-        tags: { Name: `${this.StackName}/VPC` },
+        tags: [
+          {
+            key: 'Name',
+            value: `${this.StackName}/VPC`,
+          },
+        ],
       },
     );
-    return this.vpc;
+    return this.resource.vpc;
   };
 
   VPCGatewayAttachment = () => {
     this.CheckCreated('vpc', 'internetGateway');
-    this.vpcGatewayAttachment = new aws.ec2.InternetGatewayAttachment(
+    this.resource.vpcGatewayAttachment = new aws.ec2.InternetGatewayAttachment(
       'VPCGatewayAttachment',
       {
-        internetGatewayId: this.internetGateway.id,
-        vpcId: this.vpc.id,
+        internetGatewayId: this.resource.internetGateway.id,
+        vpcId: this.resource.vpc.id,
       },
     );
-    return this.vpcGatewayAttachment;
+    return this.resource.vpcGatewayAttachment;
   };
 }
 

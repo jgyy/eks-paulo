@@ -1,21 +1,32 @@
 import * as aws from '@pulumi/aws';
 import * as pulumi from '@pulumi/pulumi';
+import * as cp from 'child_process';
 import Resources from './resource';
 
-class Parameters extends Resources {
-  CheckCreated = (...resource: any[]) => {
-    resource.forEach((r) => {
-      if (!this[r]) {
-        throw new this.E(`${r} = ${this[r]}`);
-      }
-    });
-  };
-
+class Parameters {
   E = Error;
+
+  getAMI = aws.ec2.getAmi;
 
   getAZ = aws.getAvailabilityZones;
 
   getPolicy = aws.iam.getPolicy;
+
+  NodeGroupOne = 'ng-1';
+
+  NodeGroupTwo = 'ng-2';
+
+  NodeGroupThree = 'ng-3';
+
+  NodeGroupFour = 'ng-4';
+
+  NodeGroupFive = 'ng-5';
+
+  NodeGroupSix = 'ng-6';
+
+  NodeGroupSeven = 'ng-7';
+
+  resource: Resources | null = null;
 
   StackName = 'cluster-8';
 
@@ -55,23 +66,46 @@ class Parameters extends Resources {
     }),
   ).arn;
 
+  AMILinux = () => pulumi.output(this.getAMI({
+    filters: [
+      {
+        name: 'name',
+        values: ['amzn2-ami-kernel-5.10-hvm-2.0.20220426.0-x86_64-gp2'],
+      },
+    ],
+    mostRecent: true,
+    owners: ['137112412989'],
+  })).id;
+
   AvailabilityZones = () => pulumi.output(
     this.getAZ({
       state: 'available',
     }),
   ).apply((a) => a.names.sort());
 
+  CheckCreated = (...resource: any[]) => {
+    const err = [];
+    resource.forEach((r) => {
+      if (!this.resource[r]) {
+        err.push(`${r} = ${this.resource[r]}`);
+      }
+    });
+    if (err.length !== 0) {
+      throw new this.E(err.join('\n'));
+    }
+  };
+
   DefaultVPC = () => {
-    this.vpc = pulumi.output(
+    this.resource.vpc = pulumi.output(
       aws.ec2.getVpc({
         tags: { Name: 'Default/VPC' },
       }),
     );
-    return this.vpc;
+    return this.resource.vpc;
   };
 
   DefaultSubnetPublicAPSOUTHEAST1A = () => {
-    this.subnetPublicAPSOUTHEAST1A = pulumi.output(
+    this.resource.subnetPublicAPSOUTHEAST1A = pulumi.output(
       aws.ec2.getSubnet({
         filters: [{
           name: 'tag:Name',
@@ -79,11 +113,11 @@ class Parameters extends Resources {
         }],
       }),
     );
-    return this.subnetPublicAPSOUTHEAST1A;
+    return this.resource.subnetPublicAPSOUTHEAST1A;
   };
 
   DefaultSubnetPublicAPSOUTHEAST1B = () => {
-    this.subnetPublicAPSOUTHEAST1B = pulumi.output(
+    this.resource.subnetPublicAPSOUTHEAST1B = pulumi.output(
       aws.ec2.getSubnet({
         filters: [{
           name: 'tag:Name',
@@ -91,11 +125,11 @@ class Parameters extends Resources {
         }],
       }),
     );
-    return this.subnetPublicAPSOUTHEAST1B;
+    return this.resource.subnetPublicAPSOUTHEAST1B;
   };
 
   DefaultSubnetPublicAPSOUTHEAST1C = () => {
-    this.subnetPublicAPSOUTHEAST1C = pulumi.output(
+    this.resource.subnetPublicAPSOUTHEAST1C = pulumi.output(
       aws.ec2.getSubnet({
         filters: [{
           name: 'tag:Name',
@@ -103,11 +137,11 @@ class Parameters extends Resources {
         }],
       }),
     );
-    return this.subnetPublicAPSOUTHEAST1C;
+    return this.resource.subnetPublicAPSOUTHEAST1C;
   };
 
   DefaultSubnetPrivateAPSOUTHEAST1A = () => {
-    this.subnetPrivateAPSOUTHEAST1A = pulumi.output(
+    this.resource.subnetPrivateAPSOUTHEAST1A = pulumi.output(
       aws.ec2.getSubnet({
         filters: [{
           name: 'tag:Name',
@@ -115,11 +149,11 @@ class Parameters extends Resources {
         }],
       }),
     );
-    return this.subnetPrivateAPSOUTHEAST1A;
+    return this.resource.subnetPrivateAPSOUTHEAST1A;
   };
 
   DefaultSubnetPrivateAPSOUTHEAST1B = () => {
-    this.subnetPrivateAPSOUTHEAST1B = pulumi.output(
+    this.resource.subnetPrivateAPSOUTHEAST1B = pulumi.output(
       aws.ec2.getSubnet({
         filters: [{
           name: 'tag:Name',
@@ -127,11 +161,11 @@ class Parameters extends Resources {
         }],
       }),
     );
-    return this.subnetPrivateAPSOUTHEAST1B;
+    return this.resource.subnetPrivateAPSOUTHEAST1B;
   };
 
   DefaultSubnetPrivateAPSOUTHEAST1C = () => {
-    this.subnetPrivateAPSOUTHEAST1C = pulumi.output(
+    this.resource.subnetPrivateAPSOUTHEAST1C = pulumi.output(
       aws.ec2.getSubnet({
         filters: [{
           name: 'tag:Name',
@@ -139,7 +173,15 @@ class Parameters extends Resources {
         }],
       }),
     );
-    return this.subnetPrivateAPSOUTHEAST1C;
+    return this.resource.subnetPrivateAPSOUTHEAST1C;
+  };
+
+  UpdateKubeconfig = () => {
+    this.CheckCreated('managedNodeGroupOne');
+    this.resource.managedNodeGroupOne.id.apply((i) => cp.exec(`
+echo "${i}";
+aws eks update-kubeconfig --region ap-southeast-1 --name ${this.StackName};
+    `));
   };
 }
 
