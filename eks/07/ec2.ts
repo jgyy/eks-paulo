@@ -153,173 +153,6 @@ class EC2 extends Parameters {
     return this.resource.internetGateway;
   };
 
-  LaunchTemplateOne = () => {
-    this.CheckCreated('controlPlane');
-    this.resource.launchTemplateOne = new aws.ec2.LaunchTemplate(
-      'LaunchTemplateOne',
-      {
-        blockDeviceMappings: [{
-          deviceName: '/dev/xvda',
-          ebs: {
-            iops: 3000,
-            throughput: 125,
-            volumeSize: 80,
-            volumeType: 'gp3',
-          },
-        }],
-        metadataOptions: {
-          httpPutResponseHopLimit: 2,
-          httpTokens: 'optional',
-        },
-        vpcSecurityGroupIds: [
-          this.resource.controlPlane.vpcConfig.clusterSecurityGroupId,
-        ],
-        tagSpecifications: [
-          {
-            resourceType: 'instance',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupOne}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupOne,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-          {
-            resourceType: 'volume',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupOne}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupOne,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-          {
-            resourceType: 'network-interface',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupOne}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupOne,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-        ],
-        name: 'LaunchTemplateOne',
-      },
-    );
-    return this.resource.launchTemplateOne;
-  };
-
-  LaunchTemplateTwo = () => {
-    this.CheckCreated('controlPlane');
-    this.resource.launchTemplateTwo = new aws.ec2.LaunchTemplate(
-      'LaunchTemplateTwo',
-      {
-        blockDeviceMappings: [{
-          deviceName: '/dev/xvda',
-          ebs: {
-            encrypted: 'false',
-            iops: 3000,
-            throughput: 125,
-            volumeSize: 80,
-            volumeType: 'gp3',
-          },
-        }],
-        metadataOptions: {
-          httpPutResponseHopLimit: 2,
-          httpTokens: 'optional',
-        },
-        vpcSecurityGroupIds: [
-          this.resource.controlPlane.vpcConfig.clusterSecurityGroupId,
-        ],
-        tagSpecifications: [
-          {
-            resourceType: 'instance',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupTwo}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupTwo,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-          {
-            resourceType: 'volume',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupTwo}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupTwo,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-          {
-            resourceType: 'network-interface',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupTwo}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupTwo,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-        ],
-        userData: Buffer.from(
-          fs.readFileSync(`${__dirname}/userdata2.txt`),
-        ).toString('base64'),
-        name: 'LaunchTemplateTwo',
-      },
-    );
-    return this.resource.launchTemplateTwo;
-  };
-
-  LaunchTemplateThree = () => {
-    this.CheckCreated('controlPlane');
-    this.resource.launchTemplateThree = new aws.ec2.LaunchTemplate(
-      'LaunchTemplateThree',
-      {
-        blockDeviceMappings: [{
-          deviceName: '/dev/xvda',
-          ebs: {
-            encrypted: 'false',
-            iops: 3000,
-            throughput: 125,
-            volumeSize: 80,
-            volumeType: 'gp3',
-          },
-        }],
-        metadataOptions: {
-          httpPutResponseHopLimit: 2,
-          httpTokens: 'optional',
-        },
-        vpcSecurityGroupIds: [
-          this.resource.controlPlane.vpcConfig.clusterSecurityGroupId,
-        ],
-        tagSpecifications: [
-          {
-            resourceType: 'instance',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupThree}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupThree,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-          {
-            resourceType: 'volume',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupThree}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupThree,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-          {
-            resourceType: 'network-interface',
-            tags: {
-              Name: `${this.StackName}-${this.NodeGroupThree}-Node`,
-              'alpha.io/nodegroup-name': this.NodeGroupThree,
-              'alpha.io/nodegroup-type': 'managed',
-            },
-          },
-        ],
-        userData: Buffer.from(
-          fs.readFileSync(`${__dirname}/userdata3.txt`),
-        ).toString('base64'),
-        name: 'LaunchTemplateThree',
-      },
-    );
-    return this.resource.launchTemplateThree;
-  };
-
   NATGatewayAPSOUTHEAST1A = () => {
     this.CheckCreated('natIPAPSOUTHEAST1A', 'subnetPublicAPSOUTHEAST1A');
     this.resource.natGatewayAPSOUTHEAST1A = new aws.ec2.NatGateway(
@@ -602,6 +435,38 @@ class EC2 extends Parameters {
         tags: {
           [`kubernetes.io/cluster/${this.StackName}`]: 'owned',
           Name: `${this.StackName}/SG`,
+        },
+        vpcId: this.resource.vpc.id,
+      },
+    );
+    return this.resource.sg;
+  };
+
+  SSH = () => {
+    this.CheckCreated('vpc');
+    this.resource.ssh = new aws.ec2.SecurityGroup(
+      'SSH',
+      {
+        description: 'Allow SSH access',
+        name: `${this.StackName}-remoteAccess`,
+        ingress: [
+          {
+            cidrBlocks: ['0.0.0.0/0'],
+            description: 'Allow SSH access to managed worker nodes in group ng',
+            fromPort: 22,
+            protocol: 'tcp',
+            toPort: 22,
+          },
+          {
+            ipv6CidrBlocks: ['::/0'],
+            description: 'Allow SSH access to managed worker nodes in group ng',
+            fromPort: 22,
+            protocol: 'tcp',
+            toPort: 22,
+          },
+        ],
+        tags: {
+          Name: `${this.StackName}/SSH`,
         },
         vpcId: this.resource.vpc.id,
       },

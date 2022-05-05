@@ -1,12 +1,12 @@
-import EC2 from './eks/05/ec2';
-import EKS from './eks/05/eks';
-import IAM from './eks/05/iam';
-import Resources from './eks/05/resource';
+import EC2 from './eks/06/ec2';
+import EKS from './eks/06/eks';
+import IAM from './eks/06/iam';
+import Resources from './eks/06/resource';
 
-const res = new Resources();
-const ec2 = new EC2(res);
-const eks = new EKS(res);
-const iam = new IAM(res);
+const resource = new Resources();
+const ec2 = new EC2(resource);
+const eks = new EKS(resource);
+const iam = new IAM(resource);
 
 const VPC = ec2.VPC();
 const SubnetPrivateAPSOUTHEAST1A = ec2.SubnetPrivateAPSOUTHEAST1A();
@@ -57,11 +57,7 @@ iam.PolicyFSX();
 iam.PolicyServiceLinkRole();
 iam.NodeInstanceRole();
 ec2.LaunchTemplateOne();
-ec2.LaunchTemplateTwo();
-ec2.LaunchTemplateThree();
 eks.ManagedNodeGroupOne();
-eks.ManagedNodeGroupTwo();
-eks.ManagedNodeGroupThree();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
