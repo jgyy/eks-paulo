@@ -30,42 +30,42 @@ Resources:
           HttpPutResponseHopLimit: 2
           HttpTokens: optional
         SecurityGroupIds:
-          - !ImportValue 'eksctl-cluster-11-cluster::ClusterSecurityGroupId'
+          - !ImportValue 'eksctl-cluster-12-cluster::ClusterSecurityGroupId'
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: cluster-11-ng-1-Node
-              - Key: alpha.eksctl.io/nodegroup-type
-                Value: managed
+                Value: cluster-12-ng-1-Node
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
+              - Key: alpha.eksctl.io/nodegroup-type
+                Value: managed
           - ResourceType: volume
             Tags:
               - Key: Name
-                Value: cluster-11-ng-1-Node
-              - Key: alpha.eksctl.io/nodegroup-type
-                Value: managed
+                Value: cluster-12-ng-1-Node
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
+              - Key: alpha.eksctl.io/nodegroup-type
+                Value: managed
           - ResourceType: network-interface
             Tags:
               - Key: Name
-                Value: cluster-11-ng-1-Node
-              - Key: alpha.eksctl.io/nodegroup-type
-                Value: managed
+                Value: cluster-12-ng-1-Node
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
+              - Key: alpha.eksctl.io/nodegroup-type
+                Value: managed
       LaunchTemplateName: !Sub '${AWS::StackName}'
   ManagedNodeGroup:
     Type: 'AWS::EKS::Nodegroup'
     Properties:
       AmiType: AL2_x86_64
-      ClusterName: cluster-11
+      ClusterName: cluster-12
       InstanceTypes:
         - m5.large
       Labels:
-        alpha.eksctl.io/cluster-name: cluster-11
+        alpha.eksctl.io/cluster-name: cluster-12
         alpha.eksctl.io/nodegroup-name: ng-1
       LaunchTemplate:
         Id: !Ref LaunchTemplate
@@ -79,7 +79,7 @@ Resources:
         MinSize: 1
       Subnets: !Split 
         - ','
-        - !ImportValue 'eksctl-cluster-11-cluster::SubnetsPublic'
+        - !ImportValue 'eksctl-cluster-12-cluster::SubnetsPublic'
       Tags:
         alpha.eksctl.io/nodegroup-name: ng-1
         alpha.eksctl.io/nodegroup-type: managed

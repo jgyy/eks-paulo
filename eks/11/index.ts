@@ -1,8 +1,8 @@
-import EC2 from './eks/12/ec2';
-import EKS from './eks/12/eks';
-import IAM from './eks/12/iam';
-import Launch from './eks/12/launch';
-import Resources from './eks/12/resource';
+import EC2 from './eks/11/ec2';
+import EKS from './eks/11/eks';
+import IAM from './eks/11/iam';
+import Launch from './eks/11/launch';
+import Resources from './eks/11/resource';
 
 const resource = new Resources();
 const ec2 = new EC2(resource);

@@ -29,25 +29,19 @@ Resources:
     Type: 'AWS::EKS::Cluster'
     Properties:
       KubernetesNetworkConfig: {}
-      Logging:
-        ClusterLogging:
-          EnabledTypes:
-            - Type: audit
-            - Type: authenticator
-            - Type: controllerManager
-      Name: cluster-11
+      Name: cluster-12
       ResourcesVpcConfig:
         EndpointPrivateAccess: false
         EndpointPublicAccess: true
         SecurityGroupIds:
           - !Ref ControlPlaneSecurityGroup
         SubnetIds:
-          - !Ref SubnetPublicAPSOUTHEAST1B
           - !Ref SubnetPublicAPSOUTHEAST1A
           - !Ref SubnetPublicAPSOUTHEAST1C
-          - !Ref SubnetPrivateAPSOUTHEAST1B
+          - !Ref SubnetPublicAPSOUTHEAST1B
           - !Ref SubnetPrivateAPSOUTHEAST1A
           - !Ref SubnetPrivateAPSOUTHEAST1C
+          - !Ref SubnetPrivateAPSOUTHEAST1B
       RoleArn: !GetAtt 
         - ServiceRole
         - Arn
@@ -108,7 +102,7 @@ Resources:
       AllocationId: !GetAtt 
         - NATIP
         - AllocationId
-      SubnetId: !Ref SubnetPublicAPSOUTHEAST1B
+      SubnetId: !Ref SubnetPublicAPSOUTHEAST1A
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}/NATGateway'
@@ -256,7 +250,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1a
-      CidrBlock: 192.168.128.0/19
+      CidrBlock: 192.168.96.0/19
       Tags:
         - Key: kubernetes.io/role/internal-elb
           Value: '1'
@@ -267,7 +261,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1b
-      CidrBlock: 192.168.96.0/19
+      CidrBlock: 192.168.160.0/19
       Tags:
         - Key: kubernetes.io/role/internal-elb
           Value: '1'
@@ -278,7 +272,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1c
-      CidrBlock: 192.168.160.0/19
+      CidrBlock: 192.168.128.0/19
       Tags:
         - Key: kubernetes.io/role/internal-elb
           Value: '1'
@@ -289,7 +283,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1a
-      CidrBlock: 192.168.32.0/19
+      CidrBlock: 192.168.0.0/19
       MapPublicIpOnLaunch: true
       Tags:
         - Key: kubernetes.io/role/elb
@@ -301,7 +295,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1b
-      CidrBlock: 192.168.0.0/19
+      CidrBlock: 192.168.64.0/19
       MapPublicIpOnLaunch: true
       Tags:
         - Key: kubernetes.io/role/elb
@@ -313,7 +307,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1c
-      CidrBlock: 192.168.64.0/19
+      CidrBlock: 192.168.32.0/19
       MapPublicIpOnLaunch: true
       Tags:
         - Key: kubernetes.io/role/elb
@@ -379,17 +373,17 @@ Outputs:
   SubnetsPrivate:
     Value: !Join 
       - ','
-      - - !Ref SubnetPrivateAPSOUTHEAST1B
-        - !Ref SubnetPrivateAPSOUTHEAST1A
+      - - !Ref SubnetPrivateAPSOUTHEAST1A
         - !Ref SubnetPrivateAPSOUTHEAST1C
+        - !Ref SubnetPrivateAPSOUTHEAST1B
     Export:
       Name: !Sub '${AWS::StackName}::SubnetsPrivate'
   SubnetsPublic:
     Value: !Join 
       - ','
-      - - !Ref SubnetPublicAPSOUTHEAST1B
-        - !Ref SubnetPublicAPSOUTHEAST1A
+      - - !Ref SubnetPublicAPSOUTHEAST1A
         - !Ref SubnetPublicAPSOUTHEAST1C
+        - !Ref SubnetPublicAPSOUTHEAST1B
     Export:
       Name: !Sub '${AWS::StackName}::SubnetsPublic'
   VPC:
