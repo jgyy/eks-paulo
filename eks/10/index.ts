@@ -1,8 +1,8 @@
-import EC2 from './eks/11/ec2';
-import EKS from './eks/11/eks';
-import IAM from './eks/11/iam';
-import Launch from './eks/11/launch';
-import Resources from './eks/11/resource';
+import EC2 from './eks/10/ec2';
+import EKS from './eks/10/eks';
+import IAM from './eks/10/iam';
+import Launch from './eks/10/launch';
+import Resources from './eks/10/resource';
 
 const resource = new Resources();
 const ec2 = new EC2(resource);
@@ -60,7 +60,9 @@ iam.PolicyServiceLinkRole();
 iam.NodeInstanceRole();
 
 launch.LaunchTemplateOne();
+launch.LaunchTemplateTwo();
 eks.ManagedNodeGroupOne();
+eks.ManagedNodeGroupTwo();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
