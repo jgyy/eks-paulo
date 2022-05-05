@@ -30,12 +30,12 @@ Resources:
           HttpPutResponseHopLimit: 2
           HttpTokens: optional
         SecurityGroupIds:
-          - !ImportValue 'eksctl-cluster-8-cluster::ClusterSecurityGroupId'
+          - !ImportValue 'eksctl-cluster-9-cluster::ClusterSecurityGroupId'
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: cluster-8-ng-1-Node
+                Value: cluster-9-ng-1-Node
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
               - Key: alpha.eksctl.io/nodegroup-type
@@ -43,7 +43,7 @@ Resources:
           - ResourceType: volume
             Tags:
               - Key: Name
-                Value: cluster-8-ng-1-Node
+                Value: cluster-9-ng-1-Node
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
               - Key: alpha.eksctl.io/nodegroup-type
@@ -51,7 +51,7 @@ Resources:
           - ResourceType: network-interface
             Tags:
               - Key: Name
-                Value: cluster-8-ng-1-Node
+                Value: cluster-9-ng-1-Node
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
               - Key: alpha.eksctl.io/nodegroup-type
@@ -61,11 +61,11 @@ Resources:
     Type: 'AWS::EKS::Nodegroup'
     Properties:
       AmiType: AL2_x86_64
-      ClusterName: cluster-8
+      ClusterName: cluster-9
       InstanceTypes:
-        - m5.large
+        - m5.xlarge
       Labels:
-        alpha.eksctl.io/cluster-name: cluster-8
+        alpha.eksctl.io/cluster-name: cluster-9
         alpha.eksctl.io/nodegroup-name: ng-1
       LaunchTemplate:
         Id: !Ref LaunchTemplate
@@ -75,11 +75,11 @@ Resources:
       NodegroupName: ng-1
       ScalingConfig:
         DesiredSize: 2
-        MaxSize: 5
+        MaxSize: 2
         MinSize: 2
       Subnets: !Split 
         - ','
-        - !ImportValue 'eksctl-cluster-8-cluster::SubnetsPublic'
+        - !ImportValue 'eksctl-cluster-9-cluster::SubnetsPrivate'
       Tags:
         alpha.eksctl.io/nodegroup-name: ng-1
         alpha.eksctl.io/nodegroup-type: managed

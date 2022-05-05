@@ -1,8 +1,8 @@
-import EC2 from './eks/09/ec2';
-import EKS from './eks/09/eks';
-import IAM from './eks/09/iam';
-import Launch from './eks/09/launch';
-import Resources from './eks/09/resource';
+import EC2 from './eks/08/ec2';
+import EKS from './eks/08/eks';
+import IAM from './eks/08/iam';
+import Launch from './eks/08/launch';
+import Resources from './eks/08/resource';
 
 const resource = new Resources();
 const ec2 = new EC2(resource);
@@ -67,7 +67,7 @@ export const CertificateAuthorityData = ControlPlane.certificateAuthority;
 export const ClusterSecurityGroupId = ControlPlane.vpcConfig.clusterSecurityGroupId;
 export const ClusterStackName = ec2.StackName;
 export const Endpoint = ControlPlane.endpoint;
-export const FeatureNATMode = 'HighlyAvailable';
+export const FeatureNATMode = 'Single';
 export const SecurityGroup = ControlPlaneSecurityGroup.arn;
 export const ServiceRoleARN = ServiceRole.arn;
 export const SharedNodeSecurityGroup = ClusterSharedNodeSecurityGroup.arn;
