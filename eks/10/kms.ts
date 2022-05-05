@@ -12,7 +12,7 @@ class KMS extends Parameters {
     this.resource.kmsKey = new aws.kms.Key(
       'KmsKey',
       {
-        deletionWindowInDays: 10,
+        deletionWindowInDays: 7,
         description: 'KMS key 1',
       },
     );

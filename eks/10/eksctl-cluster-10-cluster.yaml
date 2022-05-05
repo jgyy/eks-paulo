@@ -29,7 +29,7 @@ Resources:
     Type: 'AWS::EKS::Cluster'
     Properties:
       KubernetesNetworkConfig: {}
-      Name: cluster-9
+      Name: cluster-10
       ResourcesVpcConfig:
         EndpointPrivateAccess: false
         EndpointPublicAccess: true
@@ -39,9 +39,9 @@ Resources:
           - !Ref SubnetPublicAPSOUTHEAST1B
           - !Ref SubnetPublicAPSOUTHEAST1C
           - !Ref SubnetPublicAPSOUTHEAST1A
-          - !Ref SubnetPrivateAPSOUTHEAST1B
           - !Ref SubnetPrivateAPSOUTHEAST1C
           - !Ref SubnetPrivateAPSOUTHEAST1A
+          - !Ref SubnetPrivateAPSOUTHEAST1B
       RoleArn: !GetAtt 
         - ServiceRole
         - Arn
@@ -96,74 +96,40 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}/InternetGateway'
-  NATGatewayAPSOUTHEAST1A:
+  NATGateway:
     Type: 'AWS::EC2::NatGateway'
     Properties:
       AllocationId: !GetAtt 
-        - NATIPAPSOUTHEAST1A
-        - AllocationId
-      SubnetId: !Ref SubnetPublicAPSOUTHEAST1A
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}/NATGatewayAPSOUTHEAST1A'
-  NATGatewayAPSOUTHEAST1B:
-    Type: 'AWS::EC2::NatGateway'
-    Properties:
-      AllocationId: !GetAtt 
-        - NATIPAPSOUTHEAST1B
+        - NATIP
         - AllocationId
       SubnetId: !Ref SubnetPublicAPSOUTHEAST1B
       Tags:
         - Key: Name
-          Value: !Sub '${AWS::StackName}/NATGatewayAPSOUTHEAST1B'
-  NATGatewayAPSOUTHEAST1C:
-    Type: 'AWS::EC2::NatGateway'
-    Properties:
-      AllocationId: !GetAtt 
-        - NATIPAPSOUTHEAST1C
-        - AllocationId
-      SubnetId: !Ref SubnetPublicAPSOUTHEAST1C
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}/NATGatewayAPSOUTHEAST1C'
-  NATIPAPSOUTHEAST1A:
+          Value: !Sub '${AWS::StackName}/NATGateway'
+  NATIP:
     Type: 'AWS::EC2::EIP'
     Properties:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: !Sub '${AWS::StackName}/NATIPAPSOUTHEAST1A'
-  NATIPAPSOUTHEAST1B:
-    Type: 'AWS::EC2::EIP'
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}/NATIPAPSOUTHEAST1B'
-  NATIPAPSOUTHEAST1C:
-    Type: 'AWS::EC2::EIP'
-    Properties:
-      Domain: vpc
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}/NATIPAPSOUTHEAST1C'
+          Value: !Sub '${AWS::StackName}/NATIP'
   NATPrivateSubnetRouteAPSOUTHEAST1A:
     Type: 'AWS::EC2::Route'
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGatewayAPSOUTHEAST1A
+      NatGatewayId: !Ref NATGateway
       RouteTableId: !Ref PrivateRouteTableAPSOUTHEAST1A
   NATPrivateSubnetRouteAPSOUTHEAST1B:
     Type: 'AWS::EC2::Route'
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGatewayAPSOUTHEAST1B
+      NatGatewayId: !Ref NATGateway
       RouteTableId: !Ref PrivateRouteTableAPSOUTHEAST1B
   NATPrivateSubnetRouteAPSOUTHEAST1C:
     Type: 'AWS::EC2::Route'
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGatewayAPSOUTHEAST1C
+      NatGatewayId: !Ref NATGateway
       RouteTableId: !Ref PrivateRouteTableAPSOUTHEAST1C
   PolicyCloudWatchMetrics:
     Type: 'AWS::IAM::Policy'
@@ -389,7 +355,7 @@ Outputs:
     Export:
       Name: !Sub '${AWS::StackName}::Endpoint'
   FeatureNATMode:
-    Value: HighlyAvailable
+    Value: Single
   SecurityGroup:
     Value: !Ref ControlPlaneSecurityGroup
     Export:
@@ -407,9 +373,9 @@ Outputs:
   SubnetsPrivate:
     Value: !Join 
       - ','
-      - - !Ref SubnetPrivateAPSOUTHEAST1B
-        - !Ref SubnetPrivateAPSOUTHEAST1C
+      - - !Ref SubnetPrivateAPSOUTHEAST1C
         - !Ref SubnetPrivateAPSOUTHEAST1A
+        - !Ref SubnetPrivateAPSOUTHEAST1B
     Export:
       Name: !Sub '${AWS::StackName}::SubnetsPrivate'
   SubnetsPublic:

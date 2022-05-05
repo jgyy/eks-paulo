@@ -19,8 +19,6 @@ managedNodeGroups:
     withAddonPolicies:
       externalDNS: true
       certManager: true
-
-
 - name: custom-nodegroup
   instanceType: m5.xlarge
   desiredCapacity: 2

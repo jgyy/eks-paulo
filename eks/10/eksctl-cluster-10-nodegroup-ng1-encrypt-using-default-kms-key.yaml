@@ -22,38 +22,37 @@ Resources:
         BlockDeviceMappings:
           - DeviceName: /dev/xvda
             Ebs:
-              Iops: 3000
-              Throughput: 125
-              VolumeSize: 80
-              VolumeType: gp3
+              Encrypted: true
+              VolumeSize: 100
+              VolumeType: gp2
         MetadataOptions:
           HttpPutResponseHopLimit: 2
           HttpTokens: optional
         SecurityGroupIds:
-          - !ImportValue 'eksctl-cluster-9-cluster::ClusterSecurityGroupId'
+          - !ImportValue 'eksctl-cluster-10-cluster::ClusterSecurityGroupId'
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: cluster-9-ng-1-Node
+                Value: cluster-10-ng1-encrypt-using-default-kms-key-Node
               - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-1
+                Value: ng1-encrypt-using-default-kms-key
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
           - ResourceType: volume
             Tags:
               - Key: Name
-                Value: cluster-9-ng-1-Node
+                Value: cluster-10-ng1-encrypt-using-default-kms-key-Node
               - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-1
+                Value: ng1-encrypt-using-default-kms-key
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
           - ResourceType: network-interface
             Tags:
               - Key: Name
-                Value: cluster-9-ng-1-Node
+                Value: cluster-10-ng1-encrypt-using-default-kms-key-Node
               - Key: alpha.eksctl.io/nodegroup-name
-                Value: ng-1
+                Value: ng1-encrypt-using-default-kms-key
               - Key: alpha.eksctl.io/nodegroup-type
                 Value: managed
       LaunchTemplateName: !Sub '${AWS::StackName}'
@@ -61,27 +60,27 @@ Resources:
     Type: 'AWS::EKS::Nodegroup'
     Properties:
       AmiType: AL2_x86_64
-      ClusterName: cluster-9
+      ClusterName: cluster-10
       InstanceTypes:
         - m5.xlarge
       Labels:
-        alpha.eksctl.io/cluster-name: cluster-9
-        alpha.eksctl.io/nodegroup-name: ng-1
+        alpha.eksctl.io/cluster-name: cluster-10
+        alpha.eksctl.io/nodegroup-name: ng1-encrypt-using-default-kms-key
       LaunchTemplate:
         Id: !Ref LaunchTemplate
       NodeRole: !GetAtt 
         - NodeInstanceRole
         - Arn
-      NodegroupName: ng-1
+      NodegroupName: ng1-encrypt-using-default-kms-key
       ScalingConfig:
-        DesiredSize: 2
-        MaxSize: 2
-        MinSize: 2
+        DesiredSize: 1
+        MaxSize: 1
+        MinSize: 1
       Subnets: !Split 
         - ','
-        - !ImportValue 'eksctl-cluster-9-cluster::SubnetsPrivate'
+        - !ImportValue 'eksctl-cluster-10-cluster::SubnetsPublic'
       Tags:
-        alpha.eksctl.io/nodegroup-name: ng-1
+        alpha.eksctl.io/nodegroup-name: ng1-encrypt-using-default-kms-key
         alpha.eksctl.io/nodegroup-type: managed
   NodeInstanceRole:
     Type: 'AWS::IAM::Role'

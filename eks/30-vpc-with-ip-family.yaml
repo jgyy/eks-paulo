@@ -6,7 +6,7 @@ kind: ClusterConfig
 metadata:
   name: cluster-2
   region: ap-southeast-1
-  version: "1.21"
+  version: "1.22"
 
 kubernetesNetworkConfig:
   ipFamily: IPv6
