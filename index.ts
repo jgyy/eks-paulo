@@ -61,6 +61,7 @@ iam.NodeInstanceRole();
 
 launch.LaunchTemplateOne();
 eks.ManagedNodeGroupOne();
+eks.UpdateKubeconfig();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;

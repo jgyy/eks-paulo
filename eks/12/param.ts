@@ -180,7 +180,17 @@ class Parameters {
     this.CheckCreated('managedNodeGroupOne');
     this.resource.managedNodeGroupOne.id.apply((i) => cp.exec(`
 echo "${i}";
+source ./.env;
 aws eks update-kubeconfig --region ap-southeast-1 --name ${this.StackName};
+flux bootstrap github \
+  --owner="jgyy" \
+  --repository="eks-paulo" \
+  --private="false" \
+  --personal="true" \
+  --branch="main" \
+  --namespace="flux-system" \
+  --path="";
+exit 0;
     `));
   };
 }
