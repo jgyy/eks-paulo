@@ -30,12 +30,16 @@ Resources:
           HttpPutResponseHopLimit: 2
           HttpTokens: optional
         SecurityGroupIds:
-          - !ImportValue 'eksctl-cluster-12-cluster::ClusterSecurityGroupId'
+          - !ImportValue 'eksctl-cluster-13-cluster::ClusterSecurityGroupId'
         TagSpecifications:
           - ResourceType: instance
             Tags:
               - Key: Name
-                Value: cluster-12-ng-1-Node
+                Value: cluster-13-ng-1-Node
+              - Key: k8s.io/cluster-autoscaler/cluster-13
+                Value: owned
+              - Key: k8s.io/cluster-autoscaler/enabled
+                Value: 'true'
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
               - Key: alpha.eksctl.io/nodegroup-type
@@ -43,7 +47,11 @@ Resources:
           - ResourceType: volume
             Tags:
               - Key: Name
-                Value: cluster-12-ng-1-Node
+                Value: cluster-13-ng-1-Node
+              - Key: k8s.io/cluster-autoscaler/cluster-13
+                Value: owned
+              - Key: k8s.io/cluster-autoscaler/enabled
+                Value: 'true'
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
               - Key: alpha.eksctl.io/nodegroup-type
@@ -51,7 +59,11 @@ Resources:
           - ResourceType: network-interface
             Tags:
               - Key: Name
-                Value: cluster-12-ng-1-Node
+                Value: cluster-13-ng-1-Node
+              - Key: k8s.io/cluster-autoscaler/cluster-13
+                Value: owned
+              - Key: k8s.io/cluster-autoscaler/enabled
+                Value: 'true'
               - Key: alpha.eksctl.io/nodegroup-name
                 Value: ng-1
               - Key: alpha.eksctl.io/nodegroup-type
@@ -61,11 +73,11 @@ Resources:
     Type: 'AWS::EKS::Nodegroup'
     Properties:
       AmiType: AL2_x86_64
-      ClusterName: cluster-12
+      ClusterName: cluster-13
       InstanceTypes:
         - m5.large
       Labels:
-        alpha.eksctl.io/cluster-name: cluster-12
+        alpha.eksctl.io/cluster-name: cluster-13
         alpha.eksctl.io/nodegroup-name: ng-1
       LaunchTemplate:
         Id: !Ref LaunchTemplate
@@ -79,10 +91,12 @@ Resources:
         MinSize: 1
       Subnets: !Split 
         - ','
-        - !ImportValue 'eksctl-cluster-12-cluster::SubnetsPublic'
+        - !ImportValue 'eksctl-cluster-13-cluster::SubnetsPublic'
       Tags:
         alpha.eksctl.io/nodegroup-name: ng-1
         alpha.eksctl.io/nodegroup-type: managed
+        k8s.io/cluster-autoscaler/cluster-13: owned
+        k8s.io/cluster-autoscaler/enabled: 'true'
   NodeInstanceRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -102,7 +116,6 @@ Resources:
         - !Sub >-
           arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy'
-        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy'
         - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore'
       Path: /
       Tags:

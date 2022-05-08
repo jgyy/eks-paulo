@@ -29,7 +29,7 @@ Resources:
     Type: 'AWS::EKS::Cluster'
     Properties:
       KubernetesNetworkConfig: {}
-      Name: cluster-12
+      Name: cluster-13
       ResourcesVpcConfig:
         EndpointPrivateAccess: false
         EndpointPublicAccess: true
@@ -37,18 +37,18 @@ Resources:
           - !Ref ControlPlaneSecurityGroup
         SubnetIds:
           - !Ref SubnetPublicAPSOUTHEAST1A
-          - !Ref SubnetPublicAPSOUTHEAST1C
           - !Ref SubnetPublicAPSOUTHEAST1B
+          - !Ref SubnetPublicAPSOUTHEAST1C
           - !Ref SubnetPrivateAPSOUTHEAST1A
-          - !Ref SubnetPrivateAPSOUTHEAST1C
           - !Ref SubnetPrivateAPSOUTHEAST1B
+          - !Ref SubnetPrivateAPSOUTHEAST1C
       RoleArn: !GetAtt 
         - ServiceRole
         - Arn
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}/ControlPlane'
-      Version: '1.21'
+      Version: '1.22'
   ControlPlaneSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:
@@ -261,7 +261,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1b
-      CidrBlock: 192.168.160.0/19
+      CidrBlock: 192.168.128.0/19
       Tags:
         - Key: kubernetes.io/role/internal-elb
           Value: '1'
@@ -272,7 +272,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1c
-      CidrBlock: 192.168.128.0/19
+      CidrBlock: 192.168.160.0/19
       Tags:
         - Key: kubernetes.io/role/internal-elb
           Value: '1'
@@ -295,7 +295,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1b
-      CidrBlock: 192.168.64.0/19
+      CidrBlock: 192.168.32.0/19
       MapPublicIpOnLaunch: true
       Tags:
         - Key: kubernetes.io/role/elb
@@ -307,7 +307,7 @@ Resources:
     Type: 'AWS::EC2::Subnet'
     Properties:
       AvailabilityZone: ap-southeast-1c
-      CidrBlock: 192.168.32.0/19
+      CidrBlock: 192.168.64.0/19
       MapPublicIpOnLaunch: true
       Tags:
         - Key: kubernetes.io/role/elb
@@ -374,16 +374,16 @@ Outputs:
     Value: !Join 
       - ','
       - - !Ref SubnetPrivateAPSOUTHEAST1A
-        - !Ref SubnetPrivateAPSOUTHEAST1C
         - !Ref SubnetPrivateAPSOUTHEAST1B
+        - !Ref SubnetPrivateAPSOUTHEAST1C
     Export:
       Name: !Sub '${AWS::StackName}::SubnetsPrivate'
   SubnetsPublic:
     Value: !Join 
       - ','
       - - !Ref SubnetPublicAPSOUTHEAST1A
-        - !Ref SubnetPublicAPSOUTHEAST1C
         - !Ref SubnetPublicAPSOUTHEAST1B
+        - !Ref SubnetPublicAPSOUTHEAST1C
     Export:
       Name: !Sub '${AWS::StackName}::SubnetsPublic'
   VPC:

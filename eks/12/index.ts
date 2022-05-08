@@ -1,8 +1,8 @@
-import EC2 from './eks/13/ec2';
-import EKS from './eks/13/eks';
-import IAM from './eks/13/iam';
-import Launch from './eks/13/launch';
-import Resources from './eks/13/resource';
+import EC2 from './eks/12/ec2';
+import EKS from './eks/12/eks';
+import IAM from './eks/12/iam';
+import Launch from './eks/12/launch';
+import Resources from './eks/12/resource';
 
 const resource = new Resources();
 const ec2 = new EC2(resource);
@@ -61,6 +61,7 @@ iam.NodeInstanceRole();
 
 launch.LaunchTemplateOne();
 eks.ManagedNodeGroupOne();
+eks.UpdateKubeconfig();
 
 export const ARN = ControlPlane.arn;
 export const CertificateAuthorityData = ControlPlane.certificateAuthority;
